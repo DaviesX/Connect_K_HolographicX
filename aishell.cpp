@@ -1,4 +1,5 @@
 #include "aishell.h"
+#include <stdlib.h>
 #include <iostream>
 
 
@@ -27,16 +28,10 @@ AIShell::~AIShell()
 Move AIShell::make_move() const
 {
 	// @TODO: Implementation goes here.
-	
-	//this will move to the left-most column possible.
-	for (unsigned col = 0; col < m_num_cols; col ++) {
-		for (unsigned row = 0; row < m_num_rows; row ++) {
-			if (m_game_state[col][row] == NO_PIECE) {
-				Move m(col, row);
-				return m;
-			}
-		}
-	}
-	Move m(0, 0);
-	return m;
+        int x, y;
+        do {
+                x = rand()%m_num_cols;
+                y = rand()%m_num_rows;
+        } while (m_game_state[x][y] != NO_PIECE);
+	return Move(x, y);
 }
