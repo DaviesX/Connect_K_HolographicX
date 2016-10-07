@@ -12,8 +12,11 @@ all: $(PROGRAM)
 $(PROGRAM): $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o $(PROGRAM)
 
-$(SRCS): $(DEPS)
+$(SRCS): 
 	$(CXX) -c $(CFLAGS) $<
+
+run: $(PROGRAM)
+	java -jar connectk.jar cpp:aishell
 
 clean:
 	rm -rf $(OBJS)
