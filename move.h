@@ -4,10 +4,12 @@
 class Move
 {
 public:
-	int row; //the row to move to. 
-	int col; //the col to move to.
+	unsigned row; //the row to move to. 
+	unsigned col; //the col to move to.
 	Move();
-	Move(int col, int row);
+	Move(unsigned col, unsigned row);
+        
+        void set(unsigned x, unsigned y);
 };
 
 #endif //MOVE_H

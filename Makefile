@@ -1,5 +1,6 @@
 CXX=g++
 CFLAGS=-g -I.
+CXXFLAGS=-g -I. -std=c++14
 LDFLAGS=
 PROGRAM=aishell
 
@@ -11,9 +12,6 @@ all: $(PROGRAM)
 
 $(PROGRAM): $(OBJS)
 	$(CXX) $(OBJS) $(LDFLAGS) -o $(PROGRAM)
-
-$(SRCS): 
-	$(CXX) -c $(CFLAGS) $<
 
 run: $(PROGRAM)
 	java -jar connectk.jar cpp:aishell

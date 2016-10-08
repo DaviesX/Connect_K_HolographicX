@@ -1,4 +1,4 @@
-#include "move.h"
+#include <move.h>
 
 
 Move::Move()
@@ -7,11 +7,14 @@ Move::Move()
 	col = 0;
 }
 
-Move::Move(int col, int row)
+Move::Move(unsigned col, unsigned row)
 {
 	this->row = row;
 	this->col = col;
 }
 
-
-
+void Move::set(unsigned x, unsigned y)
+{
+        col = x;
+        row = y;
+}
