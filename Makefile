@@ -1,6 +1,6 @@
 CXX=g++
-CXXFLAGS=-g -Isrc -std=c++11
-LDFLAGS=
+CXXFLAGS=-Og -Isrc -std=c++11
+LDFLAGS=-Og
 PROGRAM=bin/HolographicXAI
 
 SRCS=$(wildcard src/*.cpp)
