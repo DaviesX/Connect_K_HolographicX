@@ -4,7 +4,7 @@
 #include <strategyfactory.h>
 
 
-IStrategy* StrategyFactory::create(StrategyType type, const State& s) const
+IStrategy* StrategyFactory::create(StrategyType type) const
 {
         switch (type) {
                 case Random:

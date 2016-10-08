@@ -6,7 +6,7 @@
 #include <strategyfactory.h>
 
 
-State obtain_current_state()
+State obtain_current_state(const IStrategy& strategy)
 {
         static const std::string begin = "makeMoveWithState:";
         static const std::string end = "end";
@@ -70,7 +70,9 @@ State obtain_current_state()
                                 }
                         }
 
-                        return State(colCount, rowCount, gravity, gameState, Move(lastMoveCol, lastMoveRow), k, deadline);
+                        return State(colCount, rowCount, gravity, gameState, 
+                                     Move(lastMoveCol, lastMoveRow), k, deadline,
+                                     strategy.get_gxy(), strategy.get_fxy());
                 } else
                         //otherwise loop back to the top and wait for proper input.
                         std::cout << "unrecognized command " << input << std::endl;
@@ -88,18 +90,12 @@ void return_move(const Move& move)
 int main() 
 {
         std::cout << "Make sure this program is ran by the Java shell. It is incomplete on its own. " << std::endl;
-        IStrategy* strategy = nullptr;
+        IStrategy* strategy = StrategyFactory().create(StrategyFactory::Random);
         do { 
-                const State& state = ::obtain_current_state();
-
-                // Initialize the strategy based on the state given. 
-                strategy = StrategyFactory().create(StrategyFactory::Random, state);
-
+                const State& state = ::obtain_current_state(*strategy);
                 Move m;
                 strategy->make_move(state, m);
                 ::return_move(m);
-
-                delete strategy;
         } while (true);
         delete strategy;
         return EXIT_SUCCESS;
