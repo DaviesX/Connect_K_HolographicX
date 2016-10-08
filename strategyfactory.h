@@ -2,7 +2,7 @@
 #define STRATEGYFACTORY_H
 
 class IStrategy;
-
+class State;
 
 class StrategyFactory
 {
@@ -12,7 +12,7 @@ public:
                 DFS,
         };
         
-        IStrategy*      create(StrategyType s) const;
+        IStrategy*      create(StrategyType type, const State& s) const;
 };
 
 

@@ -1,11 +1,12 @@
+#include <state.h>
 #include <strategyrand.h>
 #include <strategydfs.h>
 #include <strategyfactory.h>
 
 
-IStrategy* StrategyFactory::create(StrategyType s) const
+IStrategy* StrategyFactory::create(StrategyType type, const State& s) const
 {
-        switch (s) {
+        switch (type) {
                 case Random:
                         return new StrategyRandom();
                 case DFS:

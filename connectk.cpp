@@ -48,6 +48,8 @@ State obtain_current_state()
                         std::cin >> g;
                         deadline = g;
 
+                        std::cout << "**deadline**" << deadline << std::endl;
+
                         std::cin >> g;
                         int k = g;
 
@@ -86,12 +88,18 @@ void return_move(const Move& move)
 int main() 
 {
         std::cout << "Make sure this program is ran by the Java shell. It is incomplete on its own. " << std::endl;
-        IStrategy* strategy = StrategyFactory().create(StrategyFactory::Random);
+        IStrategy* strategy = nullptr;
         do { 
                 const State& state = ::obtain_current_state();
+
+                // Initialize the strategy based on the state given. 
+                strategy = StrategyFactory().create(StrategyFactory::Random, state);
+
                 Move m;
                 strategy->make_move(state, m);
                 ::return_move(m);
+
+                delete strategy;
         } while (true);
         delete strategy;
         return EXIT_SUCCESS;
