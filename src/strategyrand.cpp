@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include <move.h>
 #include <state.h>
 #include <strategyrand.h>
