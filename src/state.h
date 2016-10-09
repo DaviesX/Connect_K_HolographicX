@@ -37,8 +37,8 @@ public:
               const Move& last_move,
               const unsigned k,
               const unsigned deadline,
-              const IActionCost* fcost,
-              const IHeuristic* heuristic);
+              IActionCost* fcost,
+              IHeuristic* heuristic);
 	~State();
 
         struct MiniNode
@@ -69,8 +69,8 @@ public:
         void            reset();
 private:
         std::vector<State::MiniNode>    m_stack;
-        const IActionCost*              m_fcost;
-        const IHeuristic*               m_heuristic;
+        IActionCost*                    m_fcost;
+        IHeuristic*                     m_heuristic;
 };
 
 #endif // STATE_H

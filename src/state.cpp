@@ -10,8 +10,8 @@ State::State(const unsigned num_cols,
              const Move& last_move,
              const unsigned k,
              const unsigned deadline,
-             const IActionCost* fcost,
-             const IHeuristic* heuristic):
+             IActionCost* fcost,
+             IHeuristic* heuristic):
         num_rows(num_rows), 
         num_cols(num_cols), 
         gravity_on(gravity_on),
