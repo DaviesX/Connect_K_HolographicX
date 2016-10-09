@@ -14,6 +14,9 @@ $(PROGRAM): $(OBJS)
 run: $(PROGRAM)
 	java -jar connectk.jar cpp:$(PROGRAM)
 
+test: $(PROGRAM)
+	java -jar connectk.jar GoodAI.class cpp:$(PROGRAM)
+
 clean:
 	rm -rf $(OBJS)
 	rm -rf $(PROGRAM)

@@ -90,7 +90,7 @@ void return_move(const Move& move)
 int main() 
 {
         std::cout << "Make sure this program is ran by the Java shell. It is incomplete on its own. " << std::endl;
-        IStrategy* strategy = StrategyFactory().create(StrategyFactory::Random);
+        IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
         do { 
                 const State& state = ::obtain_current_state(*strategy);
                 Move m;

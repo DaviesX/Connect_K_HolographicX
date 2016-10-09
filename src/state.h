@@ -58,11 +58,6 @@ public:
                 }
         };
 
-private:
-        std::vector<State::MiniNode>    m_stack;
-        const IActionCost*              m_fcost;
-        const IHeuristic*               m_heuristic;
-
         const int                               is(unsigned x, unsigned y) const;
         float                                   g(unsigned x, unsigned y) const;
         float                                   f(unsigned x, unsigned y) const;
@@ -72,6 +67,10 @@ private:
         void            push_move(unsigned x, unsigned y, int who);
         void            pop_move();
         void            reset();
+private:
+        std::vector<State::MiniNode>    m_stack;
+        const IActionCost*              m_fcost;
+        const IHeuristic*               m_heuristic;
 };
 
 #endif // STATE_H

@@ -11,8 +11,6 @@ public:
         StrategyDFS();
         ~StrategyDFS() override;
         void make_move(const State& s, Move& m) override;
-private:
-        IActionCost*    m_fcost;
 };
 
 

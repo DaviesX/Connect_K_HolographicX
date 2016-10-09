@@ -1,10 +1,10 @@
+#include <move.h>
 #include <strategydfs.h>
 #include <actioncostlink.h>
 
 
 StrategyDFS::StrategyDFS()
 {
-        m_fcost = new ActionCostLink();
 }
 
 StrategyDFS::~StrategyDFS()
