@@ -1,3 +1,6 @@
+#include <ostream>
+#include <iostream>
+#include <log.h>
 #include <iactioncost.h>
 #include <iheuristic.h>
 #include <state.h>
@@ -44,12 +47,12 @@ const int State::is(unsigned x, unsigned y) const
 
 float State::g(unsigned x, unsigned y) const
 {
-        return cost + m_fcost->evaluate(*this, Move(x, y));
+        return cost + m_fcost->evaluate(*this, x, y);
 }
 
 float State::f(unsigned x, unsigned y) const
 {
-        return m_heuristic->evaluate(*this, Move(x, y));
+        return m_heuristic->evaluate(*this, x, y);
 }
 
 bool State::is_goal() const
@@ -63,6 +66,8 @@ const std::vector<State::MiniNode>& State::path() const
 
 void State::push_move(unsigned x, unsigned y, int who)
 {
+        if (x == -1 && y == -1)
+                return;
         m_stack.push_back(State::MiniNode(x, y, cost));
         game_state[x][y] = who;
         cost = g(x, y);
@@ -82,3 +87,19 @@ void State::reset()
         }
 }
 
+void State::print_dbg_info()
+{
+        std::ostream& out = ::get_log_stream();
+        out << "State = " << std::endl;
+        if (m_fcost != nullptr)
+                m_fcost->print_dbg_info();
+        else
+                out << "no cost function";
+        out << std::endl;
+        
+        if (m_heuristic != nullptr) 
+                m_heuristic->print_dbg_info();
+        else
+                out << "no heuristic function";
+        out << std::endl;
+}

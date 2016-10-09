@@ -1,3 +1,5 @@
+#include <iostream>
+#include <log.h>
 #include <move.h>
 
 
@@ -17,4 +19,9 @@ void Move::set(unsigned x, unsigned y)
 {
         col = x;
         row = y;
+}
+
+void Move::print() const
+{
+        ::get_log_stream() << "Move = " << col << ", " << row << std::endl;
 }

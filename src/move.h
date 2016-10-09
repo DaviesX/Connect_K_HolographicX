@@ -10,6 +10,7 @@ public:
 	Move(unsigned col, unsigned row);
         
         void set(unsigned x, unsigned y);
+        void print() const;
 };
 
 #endif //MOVE_H

@@ -74,8 +74,10 @@ float ActionCostLink::evaluate(const State& s, const int who)
         return score;
 }
 
-float ActionCostLink::evaluate(const State& s, const Move& m)
+float ActionCostLink::evaluate(const State& k, unsigned x, unsigned y)
 {
+        State& s = (State&) k;
+        s.push_move(x, y, State::AI_PIECE);
         if (m_board == nullptr) {
                 m_board = new unsigned [s.num_cols*s.num_rows];
                 for (unsigned i = 0; i < s.num_cols*s.num_rows; i ++)
@@ -88,7 +90,8 @@ float ActionCostLink::evaluate(const State& s, const Move& m)
         }
         m_w = s.num_cols;
         m_h = s.num_rows;
-        return evaluate(s, State::AI_PIECE)/evaluate(s, State::HUMAN_PIECE);
+        s.pop_move();
+        return evaluate(s, State::HUMAN_PIECE)/(0.00001 + evaluate(s, State::AI_PIECE));
 }
 
 void ActionCostLink::print_dbg_info() const

@@ -67,6 +67,8 @@ public:
         void            push_move(unsigned x, unsigned y, int who);
         void            pop_move();
         void            reset();
+
+        void            print_dbg_info();
 private:
         std::vector<State::MiniNode>    m_stack;
         IActionCost*                    m_fcost;

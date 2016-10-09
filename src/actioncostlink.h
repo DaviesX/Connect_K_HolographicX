@@ -11,7 +11,7 @@ class ActionCostLink: public IActionCost
 {
 public:
         ActionCostLink();
-        float           evaluate(const State& s, const Move& m) override;
+        float           evaluate(const State& s, unsigned x, unsigned y) override;
         void            print_dbg_info() const override;
 private:
         bool            is_markable(const State& s, const unsigned x, const unsigned y, const int who) const;
