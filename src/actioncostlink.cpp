@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <state.h>
 #include <actioncostlink.h>
@@ -25,9 +26,10 @@ void ActionCostLink::new_marker()
 unsigned ActionCostLink::trace(const State& s, const int who, int x, int y, const int dx, const int dy)
 {
         unsigned c = 0;
-        while (x >= 0 && x < m_w && y >= 0 && y < m_w &&
+        while (x >= 0 && x < m_w && y >= 0 && y < m_h &&
                is_markable(s, x, y, who)) {
                 c ++;
+                mark(x, y);
                 x += dx;
                 y += dy;
         }
@@ -77,7 +79,14 @@ float ActionCostLink::evaluate(const State& s, const int who)
 float ActionCostLink::evaluate(const State& k, unsigned x, unsigned y)
 {
         State& s = (State&) k;
-        s.push_move(x, y, State::AI_PIECE);
+        const unsigned cx = x;
+        const unsigned cy = y;
+
+        if (s.is(cx, cy) == State::NO_PIECE)
+                s.is(cx, cy, State::AI_PIECE);
+        else
+                return INFINITY;
+
         if (m_board == nullptr) {
                 m_board = new unsigned [s.num_cols*s.num_rows];
                 for (unsigned i = 0; i < s.num_cols*s.num_rows; i ++)
@@ -90,8 +99,11 @@ float ActionCostLink::evaluate(const State& k, unsigned x, unsigned y)
         }
         m_w = s.num_cols;
         m_h = s.num_rows;
-        s.pop_move();
-        return evaluate(s, State::HUMAN_PIECE)/(0.00001 + evaluate(s, State::AI_PIECE));
+
+        const float score = evaluate(s, State::HUMAN_PIECE)/(0.00001 + evaluate(s, State::AI_PIECE));
+        
+        s.is(cx, cy, State::NO_PIECE);
+        return score;
 }
 
 void ActionCostLink::print_dbg_info() const

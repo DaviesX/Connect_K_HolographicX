@@ -35,13 +35,13 @@ State obtain_current_state(const IStrategy& strategy)
                         if (g == 0)
                                 gravity = false;
                         std::cin >> g;
-                        int colCount = g;
+                        int col_count = g;
                         std::cin >> g;
-                        int rowCount = g;
+                        int row_count = g;
                         std::cin >> g;
-                        int lastMoveCol = g;
+                        int last_move_col = g;
                         std::cin >> g;
-                        int lastMoveRow = g;
+                        int last_move_row = g;
 
                         //add the deadline here:
                         int deadline = -1;
@@ -55,24 +55,21 @@ State obtain_current_state(const IStrategy& strategy)
 
                         //now the values for each space.
                         //allocate 2D array.
-                        int** gameState = NULL;
-                        gameState = new int*[colCount];
-                        for (int i = 0; i < colCount; i ++)
-                                gameState[i] = new int[rowCount];
+                        State s(col_count, row_count, gravity, 
+                                Move(last_move_col, last_move_row), k, deadline,
+                                strategy.get_gxy(), strategy.get_fxy());
 
-                        int countMoves = 0;
-                        for (int col = 0; col < colCount; col ++) {
-                                for (int row = 0; row<rowCount; row ++) {
-                                        std::cin >> gameState[col][row];
-                                        if (gameState[col][row] != State::NO_PIECE) {
-                                                countMoves += gameState[col][row];
-                                        }
+                        int count_moves = 0;
+                        for (int col = 0; col < col_count; col ++) {
+                                for (int row = 0; row < row_count; row ++) {
+                                        int who;
+                                        std::cin >> who;
+                                        s.is(col, row, who);
+                                        if (who != State::NO_PIECE)
+                                                count_moves += who;
                                 }
                         }
-
-                        return State(colCount, rowCount, gravity, gameState, 
-                                     Move(lastMoveCol, lastMoveRow), k, deadline,
-                                     strategy.get_gxy(), strategy.get_fxy());
+                        return s;
                 } else
                         //otherwise loop back to the top and wait for proper input.
                         std::cout << "unrecognized command " << input << std::endl;
@@ -81,14 +78,19 @@ State obtain_current_state(const IStrategy& strategy)
 
 void return_move(const Move& move)
 {
-        std::string madeMove = "ReturningTheMoveMade";
-        //outputs madeMove then a space then the row then a space then the column
+        std::string made_move = "ReturningTheMoveMade";
+        //outputs made_move then a space then the row then a space then the column
         //then a line break.
-        std::cout << madeMove << " " << move.col << " " << move.row << std::endl;
+        std::cout << made_move << " " << move.col << " " << move.row << std::endl;
 }
+
+// Unit tests
+#include <tst_actioncostlink.h>
+#include <tst_strategydfs.h>
 
 int main() 
 {
+#if 0
         std::cout << "Make sure this program is ran by the Java shell. It is incomplete on its own. " << std::endl;
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
         do { 
@@ -99,4 +101,8 @@ int main()
         } while (true);
         delete strategy;
         return EXIT_SUCCESS;
+#else
+        //return tst_actioncostlink();
+        return tst_strategydfs();
+#endif
 }

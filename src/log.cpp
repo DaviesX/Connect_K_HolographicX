@@ -8,13 +8,15 @@ class Log
 public:
         Log()
         {
-                m_file.open("log", std::ios::trunc);
+                m_file.open("log", std::fstream::out | std::fstream::trunc);
                 if (!m_file.is_open())
                         throw "Failed to create log file";
+                m_file << "Starting logging..." << std::endl;
         }
 
         ~Log()
         {
+                m_file << "End logging..." << std::endl;
                 m_file.close();
         }
 
@@ -26,7 +28,7 @@ public:
         void flush()
         {
                 m_file.close();
-                m_file.open("log", std::ios::out | std::ios::ate);
+                m_file.open("log", std::fstream::out | std::fstream::app);
         }
 private:
         std::ofstream   m_file;
@@ -37,7 +39,7 @@ static Log log;
 
 std::ostream& get_log_stream()
 {
-        log.get_stream();
+        return log.get_stream();
 }
 
 void flush()

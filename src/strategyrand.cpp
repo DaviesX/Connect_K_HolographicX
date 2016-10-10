@@ -14,7 +14,7 @@ void StrategyRandom::make_move(const State& s, Move& m)
         do {
                 x = rand()%s.num_cols;
                 y = rand()%s.num_rows;
-        } while (s.game_state[x][y] != State::NO_PIECE);
+        } while (s.is(x, y) != State::NO_PIECE);
 
         m.set(x, y);
 }

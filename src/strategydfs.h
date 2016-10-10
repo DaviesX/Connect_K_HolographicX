@@ -10,7 +10,10 @@ class StrategyDFS: public IStrategy
 public:
         StrategyDFS();
         ~StrategyDFS() override;
-        void make_move(const State& s, Move& m) override;
+
+        IActionCost*    get_gxy() const override;
+        IHeuristic*     get_fxy() const override;
+        void            make_move(const State& s, Move& m) override;
 };
 
 
