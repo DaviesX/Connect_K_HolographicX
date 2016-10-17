@@ -100,7 +100,7 @@ float ActionCostLink::evaluate(const State& k, unsigned x, unsigned y)
         m_w = s.num_cols;
         m_h = s.num_rows;
 
-        const float score = evaluate(s, State::HUMAN_PIECE)/(0.00001 + evaluate(s, State::AI_PIECE));
+        const float score = evaluate(s, State::HUMAN_PIECE)/(0.01 + evaluate(s, State::AI_PIECE));
         
         s.is(cx, cy, State::NO_PIECE);
         return score;
