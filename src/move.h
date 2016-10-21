@@ -1,6 +1,8 @@
 #ifndef MOVE_H
 #define MOVE_H
 
+#include <ostream>
+
 class Move
 {
 public:
@@ -10,7 +12,9 @@ public:
 	Move(unsigned col, unsigned row);
         
         void set(unsigned x, unsigned y);
-        void print() const;
 };
+
+std::ostream& operator<<(std::ostream& os, const Move& move);
+
 
 #endif //MOVE_H

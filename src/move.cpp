@@ -1,5 +1,4 @@
 #include <iostream>
-#include <log.h>
 #include <move.h>
 
 
@@ -21,7 +20,7 @@ void Move::set(unsigned x, unsigned y)
         row = y;
 }
 
-void Move::print() const
+std::ostream& operator<<(std::ostream& os, const Move& move)
 {
-        ::get_log_stream() << "Move = " << col << ", " << row << std::endl;
+        os << "Move = [" << move.row << "," << move.col << "]";
 }

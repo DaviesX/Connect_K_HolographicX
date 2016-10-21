@@ -6,7 +6,7 @@
 #include <strategyfactory.h>
 
 
-State obtain_current_state(const IStrategy& strategy)
+State obtain_current_state()
 {
         static const std::string begin = "makeMoveWithState:";
         static const std::string end = "end";
@@ -56,15 +56,14 @@ State obtain_current_state(const IStrategy& strategy)
                         //now the values for each space.
                         //allocate 2D array.
                         State s(col_count, row_count, gravity, 
-                                Move(last_move_col, last_move_row), k, deadline,
-                                strategy.get_gxy(), strategy.get_fxy());
+                                Move(last_move_col, last_move_row), k, deadline);
 
                         int count_moves = 0;
                         for (int col = 0; col < col_count; col ++) {
                                 for (int row = 0; row < row_count; row ++) {
                                         int who;
                                         std::cin >> who;
-                                        s.is(col, row, who);
+                                        s.set_move(col, row, who);
                                         if (who != State::NO_PIECE)
                                                 count_moves += who;
                                 }
@@ -85,16 +84,15 @@ void return_move(const Move& move)
 }
 
 // Unit tests
-#include <tst_actioncostlink.h>
 #include <tst_strategydfs.h>
 
 int main() 
 {
-#if 0
+#if 1
         std::cout << "Make sure this program is ran by the Java shell. It is incomplete on its own. " << std::endl;
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
         do { 
-                const State& state = ::obtain_current_state(*strategy);
+                const State& state = ::obtain_current_state();
                 Move m;
                 strategy->make_move(state, m);
                 ::return_move(m);

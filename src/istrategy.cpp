@@ -9,12 +9,14 @@ IStrategy::~IStrategy()
 {
 }
 
-IActionCost* IStrategy::get_gxy() const
+void IStrategy::print(std::ostream& os) const
 {
-        return nullptr;
+        os << "IStrategy = [Not implemented]";
 }
 
-IHeuristic* IStrategy::get_fxy() const
+
+std::ostream& operator<<(std::ostream& os, const IStrategy& s)
 {
-        return nullptr;
+        s.print(os);
+        return os;
 }

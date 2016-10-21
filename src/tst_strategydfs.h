@@ -6,18 +6,16 @@
 #include <state.h>
 #include <istrategy.h>
 #include <strategydfs.h>
-#include <actioncostlink.h>
-#include <tst_actioncostlink.h>
 
 
 static int tst_strategydfs()
 {
-        StrategyDFS strategy;
-        const State& s = tst_create_sample_state(strategy);
-        Move m;
-        strategy.make_move(s, m);
-        m.print();
-        return EXIT_SUCCESS;
+//        StrategyDFS strategy;
+//        const State& s = tst_create_sample_state(strategy);
+//        Move m;
+//        strategy.make_move(s, m);
+//        m.print();
+//        return EXIT_SUCCESS;
 }
 
 #endif
