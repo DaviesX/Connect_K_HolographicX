@@ -6,7 +6,13 @@ IHeuristic::IHeuristic()
 {
 }
 
-void IHeuristic::print_dbg_info() const
+void IHeuristic::print(std::ostream& os) const
 {
-        ::get_log_stream() << "IHeuristic = none" << std::endl;
+        os << "IHeuristic = [none]";
+}
+
+std::ostream& operator<<(std::ostream& os, const IHeuristic& h)
+{
+        h.print(os);
+        return os;
 }

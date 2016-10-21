@@ -1,4 +1,4 @@
-#include <iostream>
+#include <ostream>
 #include <log.h>
 #include <iactioncost.h>
 
@@ -7,7 +7,17 @@ IActionCost::IActionCost()
 {
 }
 
-void IActionCost::print_dbg_info() const
+IActionCost::~IActionCost()
 {
-        ::get_log_stream() << "IActionCost = none" << std::endl;
+}
+
+void IActionCost::print(std::ostream& os) const
+{
+        os << "IActionCost = none" << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& os, const IActionCost& ac)
+{
+        ac.print(os);
+        return os;
 }

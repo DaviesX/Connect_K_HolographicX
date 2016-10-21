@@ -8,6 +8,12 @@ ActionCostLink::ActionCostLink()
 {
 }
 
+ActionCostLink::~ActionCostLink()
+{
+        delete m_board;
+}
+
+// Helpers
 bool ActionCostLink::is_markable(const State& s, const unsigned x, const unsigned y, const int who) const
 {
         return m_board[x + y*m_w] != m_marker && s.is(x, y) == who;
@@ -36,7 +42,7 @@ unsigned ActionCostLink::trace(const State& s, const int who, int x, int y, cons
         return c;
 }
 
-float ActionCostLink::evaluate(const State& s, const int who)
+float ActionCostLink::score_links_for(const State& s, int who)
 {
         float score = 0;
 
@@ -72,49 +78,50 @@ float ActionCostLink::evaluate(const State& s, const int who)
                         }
                 }
         }
-
         return score;
+}
+
+// Pulic APIs
+void ActionCostLink::load_state(const State& s)
+{
+        // Evaluate the entire board for fresh start.
+        m_board = new unsigned [s.num_cols*s.num_rows];
+        for (unsigned i = 0; i < s.num_cols*s.num_rows; i ++)
+                m_board[i] = 0;
+
+        m_w = s.num_cols;
+        m_h = s.num_rows;
+
+        m_cur_score = score_links_for(s, State::HUMAN_PIECE)/(0.01 + score_links_for(s, State::AI_PIECE));
+}
+
+void ActionCostLink::accept(const State& s, float score, unsigned x, unsigned y)
+{
+        m_cur_score = score;
 }
 
 float ActionCostLink::evaluate(const State& k, unsigned x, unsigned y)
 {
-        State& s = (State&) k;
-        const unsigned cx = x;
-        const unsigned cy = y;
-
-        if (s.is(cx, cy) == State::NO_PIECE)
-                s.is(cx, cy, State::AI_PIECE);
-        else
-                return INFINITY;
-
-        if (m_board == nullptr) {
-                m_board = new unsigned [s.num_cols*s.num_rows];
-                for (unsigned i = 0; i < s.num_cols*s.num_rows; i ++)
-                        m_board[i] = 0;
-        } else if (m_w*m_h < s.num_cols*s.num_rows) {
-                delete [] m_board;
-                m_board = new unsigned [s.num_cols*s.num_rows];
-                for (unsigned i = 0; i < s.num_cols*s.num_rows; i ++)
-                        m_board[i] = 0;
-        }
-        m_w = s.num_cols;
-        m_h = s.num_rows;
-
-        const float score = evaluate(s, State::HUMAN_PIECE)/(0.01 + evaluate(s, State::AI_PIECE));
-        
-        s.is(cx, cy, State::NO_PIECE);
-        return score;
+        return 0.0f;
 }
 
-void ActionCostLink::print_dbg_info() const
+void ActionCostLink::print(std::ostream& os) const
 {
-        std::cout << "ActionCostLink: marker map = " << std::endl;
+        os << "ActionCostLink = [marker map: " << std::endl;
         for (unsigned y = 0; y < m_h; y ++) {
                 for (unsigned x = 0; x < m_w; x ++) {
-                        std::cout << m_board[x + y*m_w] << " ";
+                        os << m_board[x + y*m_w] << " ";
                 }
-                std::cout << std::endl;
+                os << std::endl;
         }
-        std::cout << "ActionCostLink: marker = " << m_marker << std::endl;
+        os << ", marker: " << m_marker << std::endl;
+        os << ", score: " << m_cur_score << std::endl;
+        os << "]";
+}
+
+std::ostream& operator<<(std::ostream& os, const ActionCostLink& ac)
+{
+        ac.print(os);
+        return os;
 }
 

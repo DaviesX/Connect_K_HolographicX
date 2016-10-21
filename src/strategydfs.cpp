@@ -25,7 +25,7 @@ void StrategyDFS::make_move(const State& s, Move& m)
                         float score = s.g(x, y);
                         std::cout << score << " ";
                         if (s.is(x, y) == State::NO_PIECE) {
-                                //float score = s.g(x, y);
+                                float score = s.g(x, y);
                                 if (score < min) {
                                         m.set(x, y);
                                         min = score;

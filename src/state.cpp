@@ -85,20 +85,20 @@ void State::reset()
         }
 }
 
-void State::print_dbg_info()
+std::ostream& operator<<(std::ostream& out, const State& s)
 {
-        std::ostream& out = ::get_log_stream();
-        out << "State = " << std::endl;
-        if (m_fcost != nullptr)
-                m_fcost->print_dbg_info();
+        out << "State = [";
+        out << "fcost: ";
+        if (s.m_fcost != nullptr)
+                out <<  *s.m_fcost; 
         else
                 out << "no cost function";
-        out << std::endl;
-        
-        if (m_heuristic != nullptr) 
-                m_heuristic->print_dbg_info();
+        out << ", ";
+
+        out << "fheuristic: ";
+        if (s.m_heuristic != nullptr)
+                out << *s.m_heuristic;
         else
                 out << "no heuristic function";
-        out << std::endl;
-        ::flush();
+        out<< "]";
 }

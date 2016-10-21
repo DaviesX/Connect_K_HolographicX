@@ -2,6 +2,7 @@
 #define STATE_H 
 
 #include <move.h>
+#include <ostream>
 #include <vector>
 
 class IActionCost;
@@ -12,6 +13,7 @@ class IHeuristic;
  */
 class State 
 {
+        friend std::ostream& operator<<(std::ostream& os, const State& s);
 public:
 	//these represent the values for each piece type.
 	static const int AI_PIECE               = 1;
@@ -67,13 +69,14 @@ public:
         void            push_move(unsigned x, unsigned y, int who);
         void            pop_move();
         void            reset();
-
-        void            print_dbg_info();
 private:
 	int*                            m_game_state;
         std::vector<State::MiniNode>    m_stack;
         IActionCost*                    m_fcost;
         IHeuristic*                     m_heuristic;
 };
+
+std::ostream& operator<<(std::ostream& os, const State& s);
+
 
 #endif // STATE_H
