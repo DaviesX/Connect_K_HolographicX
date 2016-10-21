@@ -60,7 +60,10 @@ public:
 
         const int                               is(unsigned x, unsigned y) const;
         void                                    set_move(unsigned x, unsigned y, int who);
+
         bool                                    is_goal_for(int who) const;
+        float                                   scan(int x, int y, unsigned d);
+
         float                                   current_score() const;
         const std::vector<State::MiniNode>&     path() const;
 
