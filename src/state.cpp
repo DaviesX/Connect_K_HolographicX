@@ -6,44 +6,44 @@
 
 
 // Helpers
-static int inline scan_on(const int* board, const unsigned w, const unsigned h, const int k, 
-                          int x, int y, const unsigned d, 
-                          scan_eval_t eval, void* data)
+static unsigned inline scan_on(const int* board, const int w, const int h, const int k,
+                               int x, int y, const unsigned d,
+                               scan_eval_t eval, void* data)
 {
         int counter;
 
-        // Multiplex each scenarios, 
+        // Multiplex each scenarios,
         // so we save the number of comparisons in the long run.
         switch (d) {
                 case 0:         // 0 degree.
                         counter = x;
-                        while (x < w && x - counter < k && 
+                        while (x < w && x - counter < k &&
                                eval(&board[x + w*y], x, y, x - counter, data))
                                 x ++;
                         counter = x - counter;
                         break;
                 case 1:         // 45 degree.
                         counter = x;
-                        while (x < w && y >= 0 && x - counter < k && 
+                        while (x < w && y >= 0 && x - counter < k &&
                                eval(&board[x + w*y], x, y, x - counter, data)) {
                                 x ++;
-                                y --; 
+                                y --;
                         }
                         counter = x - counter;
                         break;
                 case 2:         // 90 degree.
                         counter = y;
-                        while (y >= 0 && counter - y < k && 
+                        while (y >= 0 && counter - y < k &&
                                eval(&board[x + w*y], x, y, counter - y, data))
-                                y --; 
+                                y --;
                         counter = counter - y;
                         break;
                 case 3:         // 135 degree.
                         counter = y;
-                        while (x >= 0 && y >= 0 && counter - y < k && 
+                        while (x >= 0 && y >= 0 && counter - y < k &&
                                eval(&board[x + w*y], x, y, counter - y, data)) {
-                                x --; 
-                                y --; 
+                                x --;
+                                y --;
                         }
                         counter = counter - y;
                         break;
@@ -58,8 +58,8 @@ static int inline scan_on(const int* board, const unsigned w, const unsigned h, 
                         counter = x;
                         while (x >= 0 && y < h && counter - x < k &&
                                eval(&board[x + w*y], x, y, counter - x, data)) {
-                                x --; 
-                                y ++; 
+                                x --;
+                                y ++;
                         }
                         counter = counter - x;
                         break;
@@ -72,7 +72,7 @@ static int inline scan_on(const int* board, const unsigned w, const unsigned h, 
                         break;
                 case 7:         // 315 degree.
                         counter = y;
-                        while (x < w && y < h && x, y, y - counter < k &&
+                        while (x < w && y < h && y - counter < k &&
                                eval(&board[x + w*y], x, y, y - counter, data)) {
                                 x ++;
                                 y ++;
@@ -91,45 +91,45 @@ static bool goal_eval(const int* val, int x, int y, unsigned dist, void* data)
 static bool is_goal_for(const int* board, unsigned w, unsigned h, const Move& move, int who, unsigned k)
 {
         return (::scan_on(board, w, h, k, move.col, move.row, 0, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 4, ::goal_eval, &who)) >= k || 
+                ::scan_on(board, w, h, k, move.col, move.row, 4, ::goal_eval, &who)) >= k ||
 
                (::scan_on(board, w, h, k, move.col, move.row, 1, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 5, ::goal_eval, &who)) >= k || 
+                ::scan_on(board, w, h, k, move.col, move.row, 5, ::goal_eval, &who)) >= k ||
 
                (::scan_on(board, w, h, k, move.col, move.row, 2, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 6, ::goal_eval, &who)) >= k || 
+                ::scan_on(board, w, h, k, move.col, move.row, 6, ::goal_eval, &who)) >= k ||
 
                (::scan_on(board, w, h, k, move.col, move.row, 3, ::goal_eval, &who) +
                 ::scan_on(board, w, h, k, move.col, move.row, 7, ::goal_eval, &who)) >= k;
 }
 
 // APIs
-State::State(const unsigned num_cols, 
-             const unsigned num_rows, 
-             const bool gravity_on, 
+State::State(const unsigned num_cols,
+             const unsigned num_rows,
+             const bool gravity_on,
              const Move& last_move,
              const unsigned k,
              const unsigned deadline):
-        num_rows(num_rows), 
-        num_cols(num_cols), 
+        num_rows(num_rows),
+        num_cols(num_cols),
         gravity_on(gravity_on),
         last_move(last_move),
-        k(k),
-        deadline(deadline)
+        deadline(deadline),
+        k(k)
 {
         m_board = new int [num_cols*num_rows];
 }
 
 State::State(const State& s):
-        num_rows(s.num_rows), 
-        num_cols(s.num_cols), 
+        num_rows(s.num_rows),
+        num_cols(s.num_cols),
         gravity_on(s.gravity_on),
         last_move(s.last_move),
-        k(s.k),
         deadline(s.deadline),
+        k(s.k),
+        m_cur_score(s.m_cur_score),
         m_goal_for(s.m_goal_for),
-        m_stack(s.m_stack),
-        m_cur_score(s.m_cur_score)
+        m_stack(s.m_stack)
 {
         m_board = new int [num_cols*num_rows];
         for (unsigned y = 0; y < num_rows; y ++) {
@@ -141,10 +141,10 @@ State::State(const State& s):
 
 State::~State()
 {
-	delete [] m_board;
+    delete [] m_board;
 }
 
-const int State::is(unsigned x, unsigned y) const
+int State::is(unsigned x, unsigned y) const
 {
         return m_board[x + y*num_cols];
 }
@@ -173,7 +173,7 @@ void State::push_move(unsigned x, unsigned y, int who, float score)
 {
         m_stack.push_back(State::MiniNode(x, y, m_cur_score));
         m_board[x + y*num_cols] = who;
-        m_cur_score = score; 
+        m_cur_score = score;
 
         if (::is_goal_for(m_board, num_cols, num_rows, Move(x, y), who, k))
                 m_goal_for = who;
@@ -217,4 +217,6 @@ std::ostream& operator<<(std::ostream& os, const State& s)
         os << ", goal_for:" << s.m_goal_for << std::endl;
         // Score:
         os << ", score: " << s.m_cur_score << "]";
+
+        return os;
 }

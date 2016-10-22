@@ -12,7 +12,8 @@
 static int tst_strategydfs()
 {
 
-        State s = ::tst_state_create_sample();
+       //  State s = ::tst_state_create_sample();
+        State s = ::tst_state_create_sample2();
 
         StrategyDFS strategy;
         Move m;

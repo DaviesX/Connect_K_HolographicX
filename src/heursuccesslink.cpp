@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 #include <utility>
@@ -9,14 +10,14 @@ typedef std::pair<unsigned, unsigned> chess_pos_t;
 
 static bool eval_fr(const int* val, int x, int y, unsigned dist, void* data)
 {
-        return *val == State::NO_PIECE;
+        return *val == State::NO_PIECE && dist <= *(unsigned*) data;
 }
 
 // Tells me the effective degrees of freedom in direction d.
 static float fr(const State& s, int x, int y, int who, unsigned d, unsigned l, unsigned k)
 {
-        float fr = s.scan(x, y, d, ::eval_fr, nullptr);
-        return k/(k - l)*fr + k;
+        int r = k - l;
+        return (float) k/r*s.scan(x, y, d, ::eval_fr, &r) + l;
 }
 
 static bool eval_s(const int* val, int x, int y, unsigned dist, void* data)
@@ -42,32 +43,37 @@ static float eval_xy(const State& s, int x, int y, int who)
 
 struct EvalAffectedData
 {
-        EvalAffectedData(int who, std::vector<chess_pos_t> chesses):
-                who(who),
-                affected(chesses)
+        EvalAffectedData(std::vector<chess_pos_t>& ai_chesses,
+                         std::vector<chess_pos_t>& oppo_chesses):
+                ai_chesses(ai_chesses),
+                oppo_chesses(oppo_chesses)
         {
         }
 
-        int                             who;
-        std::vector<chess_pos_t>&       affected;
+        std::vector<chess_pos_t>&       ai_chesses;
+        std::vector<chess_pos_t>&       oppo_chesses;
 };
 
 static bool eval_affected(const int* val, int x, int y, unsigned dist, void* data)
 {
         EvalAffectedData* af_data = (EvalAffectedData*) &data;
-        if (*val == State::NO_PIECE) {
-                return true;
-        } else if (*val == af_data->who) {
-                af_data->affected.push_back(chess_pos_t(x, y));
-                return false;
-        } else {
-                return false;
+        switch (*val) {
+                case State::NO_PIECE:
+                        return true;
+                case State::AI_PIECE:
+                        af_data->ai_chesses.push_back(chess_pos_t(x, y));
+                        return false;
+                case State::HUMAN_PIECE:
+                        af_data->oppo_chesses.push_back(chess_pos_t(x, y));
+                        return false;
         }
+        return true;
 }
 
-static void find_affected_chess(const State& s, int who, const Move& move, std::vector<chess_pos_t>& chesses)
+static void find_affected_chess(const State& s, const Move& move,
+                                std::vector<chess_pos_t>& ai_chesses, std::vector<chess_pos_t>& oppo_chesses)
 {
-        EvalAffectedData data(who, chesses);
+        EvalAffectedData data(ai_chesses, oppo_chesses);
         for (unsigned d = 0; d < 8; d ++) {
                 s.scan(move.col, move.row, d, ::eval_affected, &data);
         }
@@ -84,27 +90,44 @@ static float full_board_eval(const State& s, int who)
         return score;
 }
 
-static float incremental_eval(const State& k, const Move& next_move, int who)
+static float incremental_eval(const State& k, const Move& next_move, const int who, float p0, float p1)
 {
         // Faking a const operation.
         State& s = (State&) k;
 
-        std::vector<chess_pos_t> affected;
-        ::find_affected_chess(s, State::AI_PIECE, next_move, affected);
-        float old_score = 0;
-        for (unsigned i = 0; i < affected.size(); i ++) {
-                old_score += ::eval_xy(s, affected[i].first, affected[i].second, who);
+        std::vector<chess_pos_t> affected_ai, affected_oppo;
+        ::find_affected_chess(s, next_move, affected_ai, affected_oppo);
+
+        float old_ai_score = 0;
+        for (unsigned i = 0; i < affected_ai.size(); i ++) {
+                old_ai_score += ::eval_xy(s, affected_ai[i].first, affected_ai[i].second, State::AI_PIECE);
+        }
+        float old_oppo_score = 0;
+        for (unsigned i = 0; i < affected_ai.size(); i ++) {
+                old_oppo_score += ::eval_xy(s, affected_oppo[i].first, affected_oppo[i].second, State::HUMAN_PIECE);
         }
 
-        float new_score = 0;
+
         s.set_move(next_move.col, next_move.row, who);
-        for (unsigned i = 0; i < affected.size(); i ++) {
-                new_score += ::eval_xy(s, affected[i].first, affected[i].second, who);
+        float new_ai_score = 0;
+        for (unsigned i = 0; i < affected_ai.size(); i ++) {
+                new_ai_score += ::eval_xy(s, affected_ai[i].first, affected_ai[i].second, State::AI_PIECE);
         }
-        new_score += ::eval_xy(s, next_move.col, next_move.row, State::AI_PIECE);
+        float new_oppo_score = 0;
+        for (unsigned i = 0; i < affected_oppo.size(); i ++) {
+                new_oppo_score += ::eval_xy(s, affected_oppo[i].first, affected_oppo[i].second, State::HUMAN_PIECE);
+        }
+
+        if (who == State::AI_PIECE)
+                new_ai_score += ::eval_xy(s, next_move.col, next_move.row, State::AI_PIECE);
+        else
+                new_oppo_score += ::eval_xy(s, next_move.col, next_move.row, State::HUMAN_PIECE);
         s.set_move(next_move.col, next_move.row, State::NO_PIECE);
 
-        return new_score - old_score;
+        p0 = p0 - old_ai_score + new_ai_score;
+        p1 = p1 - old_oppo_score + new_oppo_score;
+
+        return p0/p1;
 }
 
 // Public API.
@@ -127,12 +150,14 @@ void HeuristicSuccessLink::accept(const Move& m, int who, float score)
 }
 
 
-float HeuristicSuccessLink::evaluate(const State& s, const Move& next_move, int who)
+float HeuristicSuccessLink::evaluate(const State& k, const Move& next_move, int who)
 {
-        float increment = ::incremental_eval(s, next_move, who);
-        if (who == State::AI_PIECE)
-                return (p0 + increment)/p1;
-        else
-                return p0/(p1 + increment);
+        return ::incremental_eval(k, next_move, who, p0, p1);
+/*
+        s.set_move(next_move.col, next_move.row, who);
+        float score = full_board_eval(s, State::AI_PIECE)/full_board_eval(s, State::HUMAN_PIECE);
+        s.set_move(next_move.col, next_move.row, State::NO_PIECE);
+        return score;
+*/
 }
 

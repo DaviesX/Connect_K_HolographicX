@@ -1,7 +1,9 @@
 #include <math.h>
 #include <ostream>
+#include <log.h>
 #include <state.h>
 #include <move.h>
+#include <cmath>
 #include <strategydfs.h>
 #include <iheuristic.h>
 #include <heursuccesslink.h>
@@ -24,7 +26,10 @@ void StrategyDFS::load_state(const State& s)
 
 void StrategyDFS::make_move(const State& s, Move& m)
 {
-        float score = 0;
+        //::get_log_stream() << m << std::endl;
+        //::flush();
+
+        float score = -INFINITY;
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) != State::NO_PIECE)
@@ -37,5 +42,7 @@ void StrategyDFS::make_move(const State& s, Move& m)
                         }
                 }
         }
+        ::get_log_stream() << m << std::endl;
+        ::flush();
 }
 
