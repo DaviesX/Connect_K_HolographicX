@@ -90,14 +90,17 @@ static bool goal_eval(const int* val, unsigned dist, void* data)
 
 static bool is_goal_for(const int* board, unsigned w, unsigned h, const Move& move, int who, unsigned k)
 {
-        return ::scan_on(board, w, h, k, move.col, move.row, 0, ::goal_eval, &who) >= k || 
-               ::scan_on(board, w, h, k, move.col, move.row, 1, ::goal_eval, &who) >= k || 
-               ::scan_on(board, w, h, k, move.col, move.row, 2, ::goal_eval, &who) >= k || 
-               ::scan_on(board, w, h, k, move.col, move.row, 3, ::goal_eval, &who) >= k || 
-               ::scan_on(board, w, h, k, move.col, move.row, 4, ::goal_eval, &who) >= k || 
-               ::scan_on(board, w, h, k, move.col, move.row, 5, ::goal_eval, &who) >= k || 
-               ::scan_on(board, w, h, k, move.col, move.row, 6, ::goal_eval, &who) >= k || 
-               ::scan_on(board, w, h, k, move.col, move.row, 7, ::goal_eval, &who) >= k;
+        return (::scan_on(board, w, h, k, move.col, move.row, 0, ::goal_eval, &who) +
+                ::scan_on(board, w, h, k, move.col, move.row, 4, ::goal_eval, &who)) >= k || 
+
+               (::scan_on(board, w, h, k, move.col, move.row, 1, ::goal_eval, &who) +
+                ::scan_on(board, w, h, k, move.col, move.row, 5, ::goal_eval, &who)) >= k || 
+
+               (::scan_on(board, w, h, k, move.col, move.row, 2, ::goal_eval, &who) +
+                ::scan_on(board, w, h, k, move.col, move.row, 6, ::goal_eval, &who)) >= k || 
+
+               (::scan_on(board, w, h, k, move.col, move.row, 3, ::goal_eval, &who) +
+                ::scan_on(board, w, h, k, move.col, move.row, 7, ::goal_eval, &who)) >= k;
 }
 
 // APIs
@@ -168,11 +171,12 @@ const std::vector<State::MiniNode>& State::path() const
 
 void State::push_move(unsigned x, unsigned y, int who, float score)
 {
-        if (::is_goal_for(m_board, num_cols, num_rows, Move(x, y), who, k))
-                m_goal_for = who;
         m_stack.push_back(State::MiniNode(x, y, m_cur_score));
         m_board[x + y*num_cols] = who;
         m_cur_score = score; 
+
+        if (::is_goal_for(m_board, num_cols, num_rows, Move(x, y), who, k))
+                m_goal_for = who;
 }
 
 void State::pop_move()
@@ -198,7 +202,7 @@ std::ostream& operator<<(std::ostream& os, const State& s)
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 os << "\t";
                 for (unsigned x = 0; x < s.num_cols; x ++) {
-                        os << s.m_board[x + y*s.num_cols] << " ";
+                        os << s.m_board[x + y*s.num_cols] << "\t";
                 }
                 os << std::endl;
         }

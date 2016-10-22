@@ -71,9 +71,9 @@ public:
         const std::vector<State::MiniNode>&     path() const;
 
 
-        void            push_move(unsigned x, unsigned y, int who, float score);
-        void            pop_move();
-        void            reset_all_moves();
+        void                                    push_move(unsigned x, unsigned y, int who, float score);
+        void                                    pop_move();
+        void                                    reset_all_moves();
 private:
         float                           m_cur_score = 0;                // Current path cost of the state.
         int                             m_goal_for = State::NO_PIECE;   // Whose goal?

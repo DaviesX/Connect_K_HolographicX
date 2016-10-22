@@ -1,8 +1,8 @@
 # Compiler configurations
 CXX=g++
 
-CXXFLAGS=-Og -Isrc -std=c++11
-LDFLAGS=-Og
+CXXFLAGS=-g -Isrc -std=c++11
+LDFLAGS=-g
 
 # Optimization flags
 #CXXFLAGS+=-Ofast -flto
