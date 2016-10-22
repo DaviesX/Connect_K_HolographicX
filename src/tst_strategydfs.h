@@ -12,8 +12,11 @@
 static int tst_strategydfs()
 {
 
-       //  State s = ::tst_state_create_sample();
+        // State s = ::tst_state_create_sample();
         State s = ::tst_state_create_sample2();
+
+        std::cout << "Preview state:" << std::endl;
+        std::cout << s << std::endl;
 
         StrategyDFS strategy;
         Move m;

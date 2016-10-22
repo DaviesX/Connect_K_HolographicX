@@ -43,39 +43,39 @@ public:
         {
                 unsigned x;
                 unsigned y;
-                float score;
 
-                MiniNode(unsigned x, unsigned y, float score):
-                        x(x), y(y), score(score)
+                MiniNode(unsigned x, unsigned y):
+                        x(x), y(y)
                 {
                 }
 
                 MiniNode(const MiniNode& node):
-                        x(node.x), y(node.y), score(node.score)
+                        x(node.x), y(node.y)
                 {
                 }
 
                 void print(std::ostream& os) const
                 {
-                        os << "MiniNode = [" << x << "," << y << "," << score << "]";
+                        os << "MiniNode = [" << x << "," << y << "]";
                 }
         };
 
         int                                     is(unsigned x, unsigned y) const;
         void                                    set_move(unsigned x, unsigned y, int who);
 
-        bool                                    is_goal(int who) const;
+        bool                                    is_goal() const;
+        bool                                    is_goal_for(int who) const;
         unsigned                                scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
 
         float                                   current_score() const;
         const std::vector<State::MiniNode>&     path() const;
 
 
-        void                                    push_move(unsigned x, unsigned y, int who, float score);
+        void                                    push_move(unsigned x, unsigned y, int who);
+        void                                    prev_move(Move& move) const;
         void                                    pop_move();
         void                                    reset_all_moves();
 private:
-        float                           m_cur_score = 0;                // Current path cost of the state.
         int                             m_goal_for = State::NO_PIECE;   // Whose goal?
         int*                            m_board;                        // Gameboard
         std::vector<State::MiniNode>    m_stack;                        // Action path

@@ -35,7 +35,7 @@ static inline State tst_state_create_sample()
 static inline State tst_state_create_sample2()
 {
         State s(7, 7, true, Move(4, 3), 5, 5000);
-        s.set_move(4, 3, State::HUMAN_PIECE);
+        s.set_move(3, 3, State::HUMAN_PIECE);
         return s;
 }
 
@@ -70,31 +70,31 @@ static inline int tst_state()
         std::cout << s << std::endl;
 
         std::cout << "Trying step (3, 3)" << std::endl;
-        s.push_move(3, 3, State::AI_PIECE, 5.0);
+        s.push_move(3, 3, State::AI_PIECE);
         std::cout << s << std::endl;
 
         std::cout << "Should be goal for AI" << std::endl;
-        std::cout << s.is_goal(State::AI_PIECE) << std::endl;
+        std::cout << s.is_goal_for(State::AI_PIECE) << std::endl;
 
 
         std::cout << "Trying step (5, 0)" << std::endl;
-        s.push_move(5, 0, State::HUMAN_PIECE, 6.0);
+        s.push_move(5, 0, State::HUMAN_PIECE);
         std::cout << s << std::endl;
 
         std::cout << "Should be goal for human" << std::endl;
-        std::cout << s.is_goal(State::HUMAN_PIECE) << std::endl;
+        std::cout << s.is_goal_for(State::HUMAN_PIECE) << std::endl;
 
         std::cout << "Reset all" << std::endl;
         s.reset_all_moves();
         std::cout << s << std::endl;
 
         std::cout << "Try step (1, 6)" << std::endl;
-        s.push_move(1, 6, State::HUMAN_PIECE, 3.0);
+        s.push_move(1, 6, State::HUMAN_PIECE);
         std::cout << s << std::endl;
 
         std::cout << "Shouldn't be goal for both" << std::endl;
-        std::cout << s.is_goal(State::AI_PIECE) << std::endl;
-        std::cout << s.is_goal(State::HUMAN_PIECE) << std::endl;
+        std::cout << s.is_goal_for(State::AI_PIECE) << std::endl;
+        std::cout << s.is_goal_for(State::HUMAN_PIECE) << std::endl;
 
         return 0;
 }

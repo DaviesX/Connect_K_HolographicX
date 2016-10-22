@@ -129,7 +129,6 @@ State::State(const State& s):
         last_move(s.last_move),
         deadline(s.deadline),
         k(s.k),
-        m_cur_score(s.m_cur_score),
         m_goal_for(s.m_goal_for),
         m_stack(s.m_stack)
 {
@@ -156,7 +155,12 @@ void State::set_move(unsigned x, unsigned y, int who)
         m_board[x + y*num_cols] = who;
 }
 
-bool State::is_goal(int who) const
+bool State::is_goal() const
+{
+        return m_goal_for != State::NO_PIECE;
+}
+
+bool State::is_goal_for(int who) const
 {
         return m_goal_for == who;
 }
@@ -171,14 +175,20 @@ const std::vector<State::MiniNode>& State::path() const
         return m_stack;
 }
 
-void State::push_move(unsigned x, unsigned y, int who, float score)
+void State::push_move(unsigned x, unsigned y, int who)
 {
-        m_stack.push_back(State::MiniNode(x, y, m_cur_score));
+        m_stack.push_back(State::MiniNode(x, y));
         m_board[x + y*num_cols] = who;
-        m_cur_score = score;
 
         if (::is_goal_for(m_board, num_cols, num_rows, Move(x, y), who, k))
                 m_goal_for = who;
+}
+
+void State::prev_move(Move& move) const
+{
+        const State::MiniNode& node = m_stack.back();
+        move.col = node.x;
+        move.row = node.y;
 }
 
 void State::pop_move()
@@ -186,7 +196,6 @@ void State::pop_move()
         const State::MiniNode& node = m_stack.back();
         m_board[node.x + node.y*num_cols] = State::NO_PIECE;
         m_goal_for = State::NO_PIECE;
-        m_cur_score = node.score;
         m_stack.pop_back();
 }
 
@@ -216,9 +225,7 @@ std::ostream& operator<<(std::ostream& os, const State& s)
                         os << ",";
         }
         // Goal for:
-        os << ", goal_for:" << s.m_goal_for << std::endl;
-        // Score:
-        os << ", score: " << s.m_cur_score << "]";
+        os << ", goal_for:" << s.m_goal_for << "]";
 
         return os;
 }

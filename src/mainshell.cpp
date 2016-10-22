@@ -103,8 +103,8 @@ int main()
         delete strategy;
         return EXIT_SUCCESS;
 #else
-        return tst_heursuccesslink();
-        // return tst_strategydfs();
+        // return tst_heursuccesslink();
+        return tst_strategydfs();
         // return tst_state();
 #endif
 }
