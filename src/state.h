@@ -36,6 +36,7 @@ public:
               const Move& last_move,
               const unsigned k,
               const unsigned deadline);
+        State(const State& s);
 	~State();
 
         struct MiniNode
