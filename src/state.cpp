@@ -123,7 +123,10 @@ State::State(const State& s):
         gravity_on(s.gravity_on),
         last_move(s.last_move),
         k(s.k),
-        deadline(s.deadline)
+        deadline(s.deadline),
+        m_goal_for(s.m_goal_for),
+        m_stack(s.m_stack),
+        m_cur_score(s.m_cur_score)
 {
         m_board = new int [num_cols*num_rows];
         for (unsigned y = 0; y < num_rows; y ++) {
@@ -131,10 +134,6 @@ State::State(const State& s):
                         m_board[x + y*num_cols] = s.m_board[x + y*s.num_cols];
                 }
         }
-
-        m_goal_for = s.m_goal_for;
-        m_stack = s.m_stack;
-        m_cur_score = s.m_cur_score;
 }
 
 State::~State()
