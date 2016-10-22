@@ -7,30 +7,70 @@
 typedef std::pair<unsigned, unsigned> chess_pos_t;
 
 
+static bool eval_fr(const int* val, int x, int y, unsigned dist, void* data)
+{
+        return *val == State::NO_PIECE;
+}
+
 // Tells me the effective degrees of freedom in direction d.
 static float fr(const State& s, int x, int y, int who, unsigned d, unsigned l, unsigned k)
 {
-        float fr;
+        float fr = s.scan(x, y, d, ::eval_fr, nullptr);
         return k/(k - l)*fr + k;
+}
+
+static bool eval_s(const int* val, int x, int y, unsigned dist, void* data)
+{
+        return *val == *(int*) data;
 }
 
 // Tells me the length of the connect in direction d.
 static float s(const State& s, int x, int y, int who, unsigned d)
 {
+        return s.scan(x, y, d, ::eval_s, &who);
 }
 
 static float eval_xy(const State& s, int x, int y, int who)
 {
         float score = 0;
         for (unsigned d = 0; d < 8; d ++) {
-                float l = ::s(s, x, y, who, (d + 4)%8);
-                score += ::fr(s, x, y, who, d, l, s.k)*l;
+                float l = ::s(s, x, y, who, d);
+                score += ::fr(s, x, y, who, (d + 4)%8, l, s.k)*l;
         }
         return score;
 }
 
-static void find_affected_chess(const State& s, int who, const Move& move, std::vector<chess_pos_t> chesses)
+struct EvalAffectedData
 {
+        EvalAffectedData(int who, std::vector<chess_pos_t> chesses):
+                who(who),
+                affected(chesses)
+        {
+        }
+
+        int                             who;
+        std::vector<chess_pos_t>&       affected;
+};
+
+static bool eval_affected(const int* val, int x, int y, unsigned dist, void* data)
+{
+        EvalAffectedData* af_data = (EvalAffectedData*) &data;
+        if (*val == State::NO_PIECE) {
+                return true;
+        } else if (*val == af_data->who) {
+                af_data->affected.push_back(chess_pos_t(x, y));
+                return false;
+        } else {
+                return false;
+        }
+}
+
+static void find_affected_chess(const State& s, int who, const Move& move, std::vector<chess_pos_t>& chesses)
+{
+        EvalAffectedData data(who, chesses);
+        for (unsigned d = 0; d < 8; d ++) {
+                s.scan(move.col, move.row, d, ::eval_affected, &data);
+        }
 }
 
 static float full_board_eval(const State& s, int who)
@@ -67,8 +107,7 @@ static float incremental_eval(const State& k, const Move& next_move, int who)
         return new_score - old_score;
 }
 
-
-
+// Public API.
 void HeuristicSuccessLink::load_state(const State& s)
 {
         p0 = ::full_board_eval(s, State::AI_PIECE);

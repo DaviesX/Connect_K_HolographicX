@@ -64,6 +64,8 @@ static inline int tst_state()
         std::cout << "Shouldn't be goal for both" << std::endl;
         std::cout << s.is_goal(State::AI_PIECE) << std::endl;
         std::cout << s.is_goal(State::HUMAN_PIECE) << std::endl;
+        
+        return 0;
 }
 
 
