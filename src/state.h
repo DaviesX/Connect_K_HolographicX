@@ -5,6 +5,8 @@
 #include <ostream>
 #include <vector>
 
+typedef bool (*scan_eval_t) (const int* val, unsigned dist, void* data);
+
 
 /*
  * <State> represents currect game state.
@@ -62,7 +64,7 @@ public:
         void                                    set_move(unsigned x, unsigned y, int who);
 
         bool                                    is_goal_for(int who) const;
-        float                                   scan(int x, int y, unsigned d);
+        void                                    scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
 
         float                                   current_score() const;
         const std::vector<State::MiniNode>&     path() const;
