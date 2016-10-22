@@ -96,14 +96,15 @@ int main()
         do { 
                 const State& state = ::obtain_current_state();
                 Move m;
+                strategy->load_state(state);
                 strategy->make_move(state, m);
                 ::return_move(m);
         } while (true);
         delete strategy;
         return EXIT_SUCCESS;
 #else
-        return tst_heursuccesslink();
-        // return tst_strategydfs();
+        // return tst_heursuccesslink();
+        return tst_strategydfs();
         // return tst_state();
 #endif
 }

@@ -8,7 +8,8 @@ class StrategyRandom: public IStrategy
 {
 public:
         StrategyRandom();
-        void make_move(const State& s, Move& m) override;
+        void    load_state(const State& s) override;
+        void    make_move(const State& s, Move& m) override;
 };
 
 #endif  // STRATEGYRAND_H

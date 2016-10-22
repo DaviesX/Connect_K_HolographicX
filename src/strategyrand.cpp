@@ -8,6 +8,10 @@ StrategyRandom::StrategyRandom()
 {
 }
 
+void StrategyRandom::load_state(const State& s)
+{
+}
+
 void StrategyRandom::make_move(const State& s, Move& m)
 {
         int x, y;

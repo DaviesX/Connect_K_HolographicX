@@ -11,10 +11,10 @@ public:
         StrategyDFS();
         ~StrategyDFS() override;
 
+        void            load_state(const State& s) override;
         void            make_move(const State& s, Move& m) override;
 private:
         IHeuristic*     m_heur;
-        bool            m_first_time;
 };
 
 

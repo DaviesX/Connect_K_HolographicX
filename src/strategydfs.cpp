@@ -17,8 +17,25 @@ StrategyDFS::~StrategyDFS()
         delete m_heur;
 }
 
+void StrategyDFS::load_state(const State& s)
+{
+        m_heur->load_state(s);
+}
+
 void StrategyDFS::make_move(const State& s, Move& m)
 {
-        // Min-Max
+        float score = 0;
+        for (unsigned y = 0; y < s.num_rows; y ++) {
+                for (unsigned x = 0; x < s.num_cols; x ++) {
+                        if (s.is(x, y) != State::NO_PIECE)
+                                continue;
+
+                        float cur_score = m_heur->evaluate(s, Move(x, y), State::AI_PIECE);
+                        if (cur_score > score) {
+                                m.set(x, y);
+                                score = cur_score;
+                        }
+                }
+        }
 }
 
