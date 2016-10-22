@@ -26,8 +26,10 @@ void StrategyDFS::load_state(const State& s)
 
 float StrategyDFS::minimizer(State& s, Move& best_move, unsigned depth, unsigned limit)
 {
+        if (s.is_goal())
+                return INFINITY;
 
-        if (s.is_goal() || depth >= limit) {
+        if (depth >= limit) {
                 Move last;
                 s.prev_move(last);
                 s.set_move(last.col, last.row, State::NO_PIECE);
@@ -47,7 +49,6 @@ float StrategyDFS::minimizer(State& s, Move& best_move, unsigned depth, unsigned
                         s.pop_move();
 
                         if (cur_score < score) {
-                                //best_move.set(x, y);
                                 score = cur_score;
                         }
                 }
@@ -57,7 +58,10 @@ float StrategyDFS::minimizer(State& s, Move& best_move, unsigned depth, unsigned
 
 float StrategyDFS::maximizer(State& s, Move& best_move, unsigned depth, unsigned limit)
 {
-        if (s.is_goal() || depth >= limit) {
+        if (s.is_goal())
+                return -INFINITY;
+
+        if (depth >= limit) {
                 Move last;
                 s.prev_move(last);
                 s.set_move(last.col, last.row, State::NO_PIECE);

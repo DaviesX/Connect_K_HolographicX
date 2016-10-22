@@ -36,7 +36,8 @@ static float eval_xy(const State& s, int x, int y, int who)
         float score = 0;
         for (unsigned d = 0; d < 8; d ++) {
                 float l = ::s(s, x, y, who, d);
-                score += ::fr(s, x, y, who, (d + 4)%8, l, s.k)*l;
+                float alpha = ::fr(s, x, y, who, (d + 4)%8, l, s.k);
+                score += alpha*l;
         }
         return score;
 }
@@ -153,6 +154,6 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
 float HeuristicSuccessLink::evaluate(const State& k, const Move& next_move, int who)
 {
         return ::incremental_eval(k, next_move, who);
-//        return ::full_board_eval(k, next_move, who);
+        //return ::full_board_eval(k, next_move, who);
 }
 
