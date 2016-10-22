@@ -118,6 +118,8 @@ State::State(const unsigned num_cols,
         k(k)
 {
         m_board = new int [num_cols*num_rows];
+        for (unsigned i = 0; i < num_cols*num_rows; i ++)
+                m_board[i] = State::NO_PIECE;
 }
 
 State::State(const State& s):

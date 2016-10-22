@@ -14,8 +14,9 @@ class IHeuristic
 {
 public:
         IHeuristic();
-        virtual void    load_state(const State& s) = 0; 
-        virtual void    accept(const Move& m, int who, float score) = 0;
+        virtual ~IHeuristic();
+        virtual void    load_state(const State& s);
+        virtual void    accept(const Move& m, int who, float score);
         virtual float   evaluate(const State& s, const Move& next_move, int who) = 0;
         virtual void    print(std::ostream& os) const;
 };

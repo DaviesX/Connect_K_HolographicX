@@ -26,9 +26,6 @@ void StrategyDFS::load_state(const State& s)
 
 void StrategyDFS::make_move(const State& s, Move& m)
 {
-        //::get_log_stream() << m << std::endl;
-        //::flush();
-
         float score = -INFINITY;
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
@@ -42,7 +39,6 @@ void StrategyDFS::make_move(const State& s, Move& m)
                         }
                 }
         }
-        ::get_log_stream() << m << std::endl;
-        ::flush();
+        m_heur->accept(m, State::AI_PIECE, score);
 }
 

@@ -10,14 +10,15 @@ typedef std::pair<unsigned, unsigned> chess_pos_t;
 
 static bool eval_fr(const int* val, int x, int y, unsigned dist, void* data)
 {
-        return *val == State::NO_PIECE && dist <= *(unsigned*) data;
+        return (*val == State::NO_PIECE && dist <= *(unsigned*) data) || (dist == 0);
 }
 
 // Tells me the effective degrees of freedom in direction d.
 static float fr(const State& s, int x, int y, int who, unsigned d, unsigned l, unsigned k)
 {
-        int r = k - l;
-        return (float) k/r*s.scan(x, y, d, ::eval_fr, &r) + l;
+        unsigned r = k - l;
+        return s.scan(x, y, d, ::eval_fr, &r);
+        //return (float) k/r*s.scan(x, y, d, ::eval_fr, &r) + l;
 }
 
 static bool eval_s(const int* val, int x, int y, unsigned dist, void* data)
@@ -56,7 +57,8 @@ struct EvalAffectedData
 
 static bool eval_affected(const int* val, int x, int y, unsigned dist, void* data)
 {
-        EvalAffectedData* af_data = (EvalAffectedData*) &data;
+        EvalAffectedData* af_data = (EvalAffectedData*) data;
+
         switch (*val) {
                 case State::NO_PIECE:
                         return true;
@@ -79,7 +81,7 @@ static void find_affected_chess(const State& s, const Move& move,
         }
 }
 
-static float full_board_eval(const State& s, int who)
+static float full_board_eval_for(const State& s, int who)
 {
         float score = 0;
         for (unsigned y = 0; y < s.num_rows; y ++) {
@@ -90,7 +92,26 @@ static float full_board_eval(const State& s, int who)
         return score;
 }
 
-static float incremental_eval(const State& k, const Move& next_move, const int who, float p0, float p1)
+static float full_board_eval(const State& k, const Move& next_move, int who)
+{
+        // Faking a const operation.
+        State& s = (State&) k;
+
+        float old_ai_score = full_board_eval_for(s, State::AI_PIECE);
+        float old_oppo_score = full_board_eval_for(s, State::HUMAN_PIECE);
+
+        s.set_move(next_move.col, next_move.row, who);
+        float new_ai_score = full_board_eval_for(s, State::AI_PIECE);
+        float new_oppo_score = full_board_eval_for(s, State::HUMAN_PIECE);
+        s.set_move(next_move.col, next_move.row, State::NO_PIECE);
+
+        float p0 = - old_ai_score + new_ai_score;
+        float p1 = - old_oppo_score + new_oppo_score;
+
+        return p0 - p1;
+}
+
+static float incremental_eval(const State& k, const Move& next_move, const int who)
 {
         // Faking a const operation.
         State& s = (State&) k;
@@ -103,10 +124,9 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
                 old_ai_score += ::eval_xy(s, affected_ai[i].first, affected_ai[i].second, State::AI_PIECE);
         }
         float old_oppo_score = 0;
-        for (unsigned i = 0; i < affected_ai.size(); i ++) {
+        for (unsigned i = 0; i < affected_oppo.size(); i ++) {
                 old_oppo_score += ::eval_xy(s, affected_oppo[i].first, affected_oppo[i].second, State::HUMAN_PIECE);
         }
-
 
         s.set_move(next_move.col, next_move.row, who);
         float new_ai_score = 0;
@@ -124,40 +144,16 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
                 new_oppo_score += ::eval_xy(s, next_move.col, next_move.row, State::HUMAN_PIECE);
         s.set_move(next_move.col, next_move.row, State::NO_PIECE);
 
-        p0 = p0 - old_ai_score + new_ai_score;
-        p1 = p1 - old_oppo_score + new_oppo_score;
+        float p0 = - old_ai_score + new_ai_score;
+        float p1 = - old_oppo_score + new_oppo_score;
 
-        return p0/p1;
+        return p0 - p1;
 }
 
 // Public API.
-void HeuristicSuccessLink::load_state(const State& s)
-{
-        p0 = ::full_board_eval(s, State::AI_PIECE);
-        p1 = ::full_board_eval(s, State::HUMAN_PIECE);
-}
-
-void HeuristicSuccessLink::accept(const Move& m, int who, float score)
-{
-        switch (who) {
-                case State::AI_PIECE:
-                        p0 = score;
-                        break;
-                case State::HUMAN_PIECE:
-                        p1 = score;
-                        break;
-        }
-}
-
-
 float HeuristicSuccessLink::evaluate(const State& k, const Move& next_move, int who)
 {
-        return ::incremental_eval(k, next_move, who, p0, p1);
-/*
-        s.set_move(next_move.col, next_move.row, who);
-        float score = full_board_eval(s, State::AI_PIECE)/full_board_eval(s, State::HUMAN_PIECE);
-        s.set_move(next_move.col, next_move.row, State::NO_PIECE);
-        return score;
-*/
+        return ::incremental_eval(k, next_move, who);
+//        return ::full_board_eval(k, next_move, who);
 }
 

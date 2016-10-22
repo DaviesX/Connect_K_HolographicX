@@ -55,7 +55,7 @@ State obtain_current_state()
 
                         //now the values for each space.
                         //allocate 2D array.
-                        State s(col_count, row_count, gravity, 
+                        State s(col_count, row_count, gravity,
                                 Move(last_move_col, last_move_row), k, deadline);
 
                         int count_moves = 0;
@@ -88,12 +88,12 @@ void return_move(const Move& move)
 #include <tst_heursuccesslink.h>
 #include <tst_strategydfs.h>
 
-int main() 
+int main()
 {
-#if 0
+#if 1
         std::cout << "Make sure this program is ran by the Java shell. It is incomplete on its own. " << std::endl;
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
-        do { 
+        do {
                 const State& state = ::obtain_current_state();
                 Move m;
                 strategy->load_state(state);
@@ -104,7 +104,7 @@ int main()
         return EXIT_SUCCESS;
 #else
         return tst_heursuccesslink();
-       //  return tst_strategydfs();
+        // return tst_strategydfs();
         // return tst_state();
 #endif
 }

@@ -11,6 +11,7 @@ unsigned StopWatch::begin(unsigned total_amount)
         m_total = total_amount;
         m_begin = clock();
         m_last = m_begin;
+        return m_begin;
 }
 
 float StopWatch::dt() const

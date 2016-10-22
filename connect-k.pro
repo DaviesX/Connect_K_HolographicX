@@ -1,8 +1,14 @@
 TEMPLATE = app
+
 TARGET = HolographicXAI
+
+QMAKE_CXXFLAGS_WARN_ON += -Wno-unused-parameter
+QMAKE_CXXFLAGS_WARN_ON += -Wno-unused-function
+
 CONFIG += c++11
 CONFIG -= app_bundle
 CONFIG -= qt
+
 
 INCLUDEPATH += src
 

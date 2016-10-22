@@ -6,6 +6,18 @@ IHeuristic::IHeuristic()
 {
 }
 
+IHeuristic::~IHeuristic()
+{
+}
+
+void IHeuristic::load_state(const State& s)
+{
+}
+
+void IHeuristic::accept(const Move& m, int who, float score)
+{
+}
+
 void IHeuristic::print(std::ostream& os) const
 {
         os << "IHeuristic = [none]";
