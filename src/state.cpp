@@ -18,14 +18,14 @@ static int inline scan_on(const int* board, const unsigned w, const unsigned h, 
                 case 0:         // 0 degree.
                         counter = x;
                         while (x < w && x - counter < k && 
-                               eval(&board[x + w*y], x - counter, data))
+                               eval(&board[x + w*y], x, y, x - counter, data))
                                 x ++;
                         counter = x - counter;
                         break;
                 case 1:         // 45 degree.
                         counter = x;
                         while (x < w && y >= 0 && x - counter < k && 
-                               eval(&board[x + w*y], x - counter, data)) {
+                               eval(&board[x + w*y], x, y, x - counter, data)) {
                                 x ++;
                                 y --; 
                         }
@@ -34,14 +34,14 @@ static int inline scan_on(const int* board, const unsigned w, const unsigned h, 
                 case 2:         // 90 degree.
                         counter = y;
                         while (y >= 0 && counter - y < k && 
-                               eval(&board[x + w*y], counter - y, data))
+                               eval(&board[x + w*y], x, y, counter - y, data))
                                 y --; 
                         counter = counter - y;
                         break;
                 case 3:         // 135 degree.
                         counter = y;
                         while (x >= 0 && y >= 0 && counter - y < k && 
-                               eval(&board[x + w*y], counter - y, data)) {
+                               eval(&board[x + w*y], x, y, counter - y, data)) {
                                 x --; 
                                 y --; 
                         }
@@ -50,14 +50,14 @@ static int inline scan_on(const int* board, const unsigned w, const unsigned h, 
                 case 4:         // 180 degree.
                         counter = x;
                         while (x >= 0 && counter - x < k &&
-                               eval(&board[x + w*y], counter - x, data))
+                               eval(&board[x + w*y], x, y, counter - x, data))
                                 x --;
                         counter = counter - x;
                         break;
                 case 5:         // 225 degree.
                         counter = x;
                         while (x >= 0 && y < h && counter - x < k &&
-                               eval(&board[x + w*y], counter - x, data)) {
+                               eval(&board[x + w*y], x, y, counter - x, data)) {
                                 x --; 
                                 y ++; 
                         }
@@ -66,14 +66,14 @@ static int inline scan_on(const int* board, const unsigned w, const unsigned h, 
                 case 6:         // 270 degree.
                         counter = y;
                         while (y < h && y - counter < k &&
-                               eval(&board[x + w*y], y - counter, data))
+                               eval(&board[x + w*y], x, y, y - counter, data))
                                 y ++;
                         counter = y - counter;
                         break;
                 case 7:         // 315 degree.
                         counter = y;
-                        while (x < w && y < h && y - counter < k &&
-                               eval(&board[x + w*y], y - counter, data)) {
+                        while (x < w && y < h && x, y, y - counter < k &&
+                               eval(&board[x + w*y], x, y, y - counter, data)) {
                                 x ++;
                                 y ++;
                         }
@@ -83,7 +83,7 @@ static int inline scan_on(const int* board, const unsigned w, const unsigned h, 
         return counter;
 }
 
-static bool goal_eval(const int* val, unsigned dist, void* data)
+static bool goal_eval(const int* val, int x, int y, unsigned dist, void* data)
 {
         return *val == *(int*) data;
 }
@@ -154,14 +154,14 @@ void State::set_move(unsigned x, unsigned y, int who)
         m_board[x + y*num_cols] = who;
 }
 
-bool State::is_goal_for(int who) const
+bool State::is_goal(int who) const
 {
         return m_goal_for == who;
 }
 
-void State::scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const
+unsigned State::scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const
 {
-        ::scan_on(m_board, num_cols, num_rows, k, x, y, d, eval, data);
+        return ::scan_on(m_board, num_cols, num_rows, k, x, y, d, eval, data);
 }
 
 const std::vector<State::MiniNode>& State::path() const

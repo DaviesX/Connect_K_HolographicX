@@ -43,7 +43,27 @@ static inline int tst_state()
         std::cout << s << std::endl;
 
         std::cout << "Should be goal for AI" << std::endl;
-        std::cout << s.is_goal_for(State::AI_PIECE) << std::endl;
+        std::cout << s.is_goal(State::AI_PIECE) << std::endl;
+
+
+        std::cout << "Trying step (5, 0)" << std::endl;
+        s.push_move(5, 0, State::HUMAN_PIECE, 6.0);
+        std::cout << s << std::endl;
+
+        std::cout << "Should be goal for human" << std::endl;
+        std::cout << s.is_goal(State::HUMAN_PIECE) << std::endl;
+
+        std::cout << "Reset all" << std::endl;
+        s.reset_all_moves();
+        std::cout << s << std::endl;
+
+        std::cout << "Try step (1, 6)" << std::endl;
+        s.push_move(1, 6, State::HUMAN_PIECE, 3.0);
+        std::cout << s << std::endl;
+
+        std::cout << "Shouldn't be goal for both" << std::endl;
+        std::cout << s.is_goal(State::AI_PIECE) << std::endl;
+        std::cout << s.is_goal(State::HUMAN_PIECE) << std::endl;
 }
 
 

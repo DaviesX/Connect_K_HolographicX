@@ -5,7 +5,7 @@
 #include <ostream>
 #include <vector>
 
-typedef bool (*scan_eval_t) (const int* val, unsigned dist, void* data);
+typedef bool (*scan_eval_t) (const int* val, int x, int y, unsigned dist, void* data);
 
 
 /*
@@ -64,8 +64,8 @@ public:
         const int                               is(unsigned x, unsigned y) const;
         void                                    set_move(unsigned x, unsigned y, int who);
 
-        bool                                    is_goal_for(int who) const;
-        void                                    scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
+        bool                                    is_goal(int who) const;
+        unsigned                                scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
 
         float                                   current_score() const;
         const std::vector<State::MiniNode>&     path() const;
