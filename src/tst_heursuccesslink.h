@@ -8,7 +8,7 @@
 
 inline static int tst_heursuccesslink()
 {
-        State s = tst_state_create_sample2();
+        State s = tst_state_create_sample3();
 
         std::cout << "Preview: " << std::endl;
         std::cout << s << std::endl;

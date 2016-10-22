@@ -39,7 +39,31 @@ static inline State tst_state_create_sample2()
         return s;
 }
 
-static inline int tst_state() 
+static inline State tst_state_create_sample3()
+{
+        State s(8, 8, true, Move(7, 2), 5, 5000);
+
+        s.set_move(3, 4, State::AI_PIECE);
+        s.set_move(4, 4, State::AI_PIECE);
+        s.set_move(4, 3, State::AI_PIECE);
+        s.set_move(4, 2, State::AI_PIECE);
+
+        s.set_move(5, 2, State::AI_PIECE);
+        s.set_move(6, 1, State::AI_PIECE);
+
+        s.set_move(2, 5, State::HUMAN_PIECE);
+        s.set_move(4, 5, State::HUMAN_PIECE);
+        s.set_move(3, 3, State::HUMAN_PIECE);
+        s.set_move(3, 2, State::HUMAN_PIECE);
+
+        s.set_move(4, 1, State::HUMAN_PIECE);
+        s.set_move(6, 2, State::HUMAN_PIECE);
+        s.set_move(7, 2, State::HUMAN_PIECE);
+
+        return s;
+}
+
+static inline int tst_state()
 {
         State s = ::tst_state_create_sample();
         std::cout << "Preview" << std::endl;
@@ -71,7 +95,7 @@ static inline int tst_state()
         std::cout << "Shouldn't be goal for both" << std::endl;
         std::cout << s.is_goal(State::AI_PIECE) << std::endl;
         std::cout << s.is_goal(State::HUMAN_PIECE) << std::endl;
-        
+
         return 0;
 }
 

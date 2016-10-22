@@ -17,8 +17,7 @@ static bool eval_fr(const int* val, int x, int y, unsigned dist, void* data)
 static float fr(const State& s, int x, int y, int who, unsigned d, unsigned l, unsigned k)
 {
         unsigned r = k - l;
-        return s.scan(x, y, d, ::eval_fr, &r);
-        //return (float) k/r*s.scan(x, y, d, ::eval_fr, &r) + l;
+        return s.scan(x, y, d, ::eval_fr, &r) + k/(float) r;
 }
 
 static bool eval_s(const int* val, int x, int y, unsigned dist, void* data)
