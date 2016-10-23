@@ -118,7 +118,7 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
 
         std::vector<chess_pos_t> affected_ai, affected_oppo;
         ::find_affected_chess(s, next_move, affected_ai, affected_oppo);
-
+/*
         float old_ai_score = 0;
         for (unsigned i = 0; i < affected_ai.size(); i ++) {
                 old_ai_score += ::eval_xy(s, affected_ai[i].first, affected_ai[i].second, State::AI_PIECE);
@@ -127,7 +127,7 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
         for (unsigned i = 0; i < affected_oppo.size(); i ++) {
                 old_oppo_score += ::eval_xy(s, affected_oppo[i].first, affected_oppo[i].second, State::HUMAN_PIECE);
         }
-
+*/
         s.set_move(next_move.col, next_move.row, who);
         float new_ai_score = 0;
         for (unsigned i = 0; i < affected_ai.size(); i ++) {
@@ -144,8 +144,8 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
                 new_oppo_score += ::eval_xy(s, next_move.col, next_move.row, State::HUMAN_PIECE);
         s.set_move(next_move.col, next_move.row, State::NO_PIECE);
 
-        float p0 = - old_ai_score + new_ai_score;
-        float p1 = - old_oppo_score + new_oppo_score;
+        float p0 = /*- old_ai_score +*/ new_ai_score;
+        float p1 = /*- old_oppo_score +*/ new_oppo_score;
 
         return p0 - p1;
 }

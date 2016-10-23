@@ -82,7 +82,7 @@ float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
 {
         bool has_set = false;
 
-        float score = -FLT_MAX;
+        float score = -INFINITY;
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) != State::NO_PIECE)
