@@ -91,16 +91,16 @@ static bool goal_eval(const int* val, int x, int y, unsigned dist, void* data)
 static bool is_goal_for(const int* board, unsigned w, unsigned h, const Move& move, int who, unsigned k)
 {
         return (::scan_on(board, w, h, k, move.col, move.row, 0, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 4, ::goal_eval, &who)) >= k ||
+                ::scan_on(board, w, h, k, move.col, move.row, 4, ::goal_eval, &who)) > k ||
 
                (::scan_on(board, w, h, k, move.col, move.row, 1, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 5, ::goal_eval, &who)) >= k ||
+                ::scan_on(board, w, h, k, move.col, move.row, 5, ::goal_eval, &who)) > k ||
 
                (::scan_on(board, w, h, k, move.col, move.row, 2, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 6, ::goal_eval, &who)) >= k ||
+                ::scan_on(board, w, h, k, move.col, move.row, 6, ::goal_eval, &who)) > k ||
 
                (::scan_on(board, w, h, k, move.col, move.row, 3, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 7, ::goal_eval, &who)) >= k;
+                ::scan_on(board, w, h, k, move.col, move.row, 7, ::goal_eval, &who)) > k;
 }
 
 // APIs

@@ -156,4 +156,3 @@ float HeuristicSuccessLink::evaluate(const State& k, const Move& next_move, int 
         return ::incremental_eval(k, next_move, who);
         //return ::full_board_eval(k, next_move, who);
 }
-

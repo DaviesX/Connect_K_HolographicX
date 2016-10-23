@@ -106,5 +106,6 @@ int main()
         // return tst_heursuccesslink();
         return tst_strategydfs();
         // return tst_state();
+        // return tst_state2();
 #endif
 }
