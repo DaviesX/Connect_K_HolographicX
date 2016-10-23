@@ -24,18 +24,13 @@ void StrategyDFS::load_state(const State& s)
         m_heur->load_state(s);
 }
 
-float StrategyDFS::minimizer(State& s, unsigned depth, unsigned limit)
+float StrategyDFS::minimizer(State& s, const Move& move, unsigned depth, const unsigned& limit)
 {
-        if (s.is_goal())
+        if (s.is_goal_for(move, State::AI_PIECE))
                 return INFINITY;
 
         if (depth >= limit) {
-                Move last;
-                s.prev_move(last);
-                s.set_move(last.col, last.row, State::NO_PIECE);
-                float score = m_heur->evaluate(s, last, State::AI_PIECE);
-                s.set_move(last.col, last.row, State::AI_PIECE);
-                return score;
+                return m_heur->evaluate(s, move, State::AI_PIECE);
         }
 
         float score = +INFINITY;
@@ -44,9 +39,9 @@ float StrategyDFS::minimizer(State& s, unsigned depth, unsigned limit)
                         if (s.is(x, y) != State::NO_PIECE)
                                 continue;
 
-                        s.push_move(x, y, State::HUMAN_PIECE);
-                        float cur_score = maximizer(s, depth + 1, limit);
-                        s.pop_move();
+                        s.set_move(x, y, State::HUMAN_PIECE);
+                        float cur_score = maximizer(s, Move(x, y), depth + 1, limit);
+                        s.set_move(x, y, State::NO_PIECE);
 
                         if (cur_score < score)
                                 score = cur_score;
@@ -55,18 +50,13 @@ float StrategyDFS::minimizer(State& s, unsigned depth, unsigned limit)
         return score;
 }
 
-float StrategyDFS::maximizer(State& s, unsigned depth, unsigned limit)
+float StrategyDFS::maximizer(State& s, const Move& move, unsigned depth, const unsigned& limit)
 {
-        if (s.is_goal())
+        if (s.is_goal_for(move, State::HUMAN_PIECE))
                 return -INFINITY;
 
         if (depth >= limit) {
-                Move last;
-                s.prev_move(last);
-                s.set_move(last.col, last.row, State::NO_PIECE);
-                float score = m_heur->evaluate(s, last, State::HUMAN_PIECE);
-                s.set_move(last.col, last.row, State::HUMAN_PIECE);
-                return score;
+                return m_heur->evaluate(s, move, State::HUMAN_PIECE);
         }
 
         float score = -INFINITY;
@@ -75,9 +65,9 @@ float StrategyDFS::maximizer(State& s, unsigned depth, unsigned limit)
                         if (s.is(x, y) != State::NO_PIECE)
                                 continue;
 
-                        s.push_move(x, y, State::AI_PIECE);
-                        float cur_score = minimizer(s, depth + 1, limit);
-                        s.pop_move();
+                        s.set_move(x, y, State::AI_PIECE);
+                        float cur_score = minimizer(s, Move(x, y), depth + 1, limit);
+                        s.set_move(x, y, State::NO_PIECE);
 
                         if (cur_score >= score)
                                 score = cur_score;
@@ -97,9 +87,9 @@ float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
                         if (s.is(x, y) != State::NO_PIECE)
                                 continue;
 
-                        s.push_move(x, y, State::AI_PIECE);
-                        float cur_score = minimizer(s, 1, limit);
-                        s.pop_move();
+                        s.set_move(x, y, State::AI_PIECE);
+                        float cur_score = minimizer(s, Move(x, y), 1, limit);
+                        s.set_move(x, y, State::NO_PIECE);
 
                         if (cur_score > score || (!has_set && cur_score >= score)) {
                                 move.set(x, y);
@@ -128,9 +118,9 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth)
                                 continue;
                         }
 
-                        s.push_move(x, y, State::AI_PIECE);
-                        float cur_score = minimizer(s, 1, depth);
-                        s.pop_move();
+                        s.set_move(x, y, State::AI_PIECE);
+                        float cur_score = minimizer(s, Move(x, y), 1, depth);
+                        s.set_move(x, y, State::NO_PIECE);
 
                         os << cur_score << "\t";
                 }

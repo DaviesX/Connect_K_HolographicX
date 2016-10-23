@@ -14,7 +14,8 @@ static int tst_strategydfs()
 
         // State s = ::tst_state_create_sample();
         // State s = ::tst_state_create_sample2();
-        State s = ::tst_state_create_sample4();
+        // State s = ::tst_state_create_sample4();
+        State s = ::tst_state_create_sample5();
 
         std::cout << "Preview state:" << std::endl;
         std::cout << s << std::endl;
@@ -24,7 +25,7 @@ static int tst_strategydfs()
         strategy.load_state(s);
 
         std::cout << "Analysis: " << std::endl;
-        //strategy.print_analysis(std::cout, s, 4);
+        strategy.print_analysis(std::cout, s, 2);
 
         std::cout << "Making move: " << std::endl;
         strategy.make_move(s, m);

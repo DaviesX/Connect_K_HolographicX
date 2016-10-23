@@ -64,6 +64,7 @@ public:
         void                                    set_move(unsigned x, unsigned y, int who);
 
         bool                                    is_goal() const;
+        bool                                    is_goal_for(const Move& m, int who) const;
         bool                                    is_goal_for(int who) const;
         unsigned                                scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
 

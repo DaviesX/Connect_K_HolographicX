@@ -160,6 +160,11 @@ bool State::is_goal() const
         return m_goal_for != State::NO_PIECE;
 }
 
+bool State::is_goal_for(const Move& m, int who) const
+{
+        return ::is_goal_for(m_board, num_cols, num_rows, m, who, k);
+}
+
 bool State::is_goal_for(int who) const
 {
         return m_goal_for == who;

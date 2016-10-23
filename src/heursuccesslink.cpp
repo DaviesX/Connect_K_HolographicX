@@ -14,9 +14,9 @@ static bool eval_fr(const int* val, int x, int y, unsigned dist, void* data)
 }
 
 // Tells me the effective degrees of freedom in direction d.
-static float fr(const State& s, int x, int y, int who, unsigned d, unsigned l, unsigned k)
+static float fr(const State& s, int x, int y, int who, unsigned d, int l, int k)
 {
-        unsigned r = k - l;
+        unsigned r = std::max(0, k - l);
         return s.scan(x, y, d, ::eval_fr, &r) + k/(float) r;
 }
 

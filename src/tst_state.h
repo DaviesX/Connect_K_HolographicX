@@ -87,6 +87,22 @@ static inline State tst_state_create_sample4()
         return s;
 }
 
+static inline State tst_state_create_sample5()
+{
+        State s(3, 3, true, Move(2, 1), 3, 5000);
+
+        s.set_move(0, 0, State::AI_PIECE);
+        s.set_move(1, 1, State::AI_PIECE);
+        s.set_move(2, 1, State::AI_PIECE);
+
+        s.set_move(1, 0, State::HUMAN_PIECE);
+        s.set_move(0, 1, State::HUMAN_PIECE);
+        s.set_move(2, 2, State::HUMAN_PIECE);
+        s.set_move(1, 2, State::HUMAN_PIECE);
+
+        return s;
+}
+
 static inline int tst_state()
 {
         State s = ::tst_state_create_sample();
