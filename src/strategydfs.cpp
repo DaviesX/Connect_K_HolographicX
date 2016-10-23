@@ -1,6 +1,7 @@
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <ostream>
+#include <float.h>
 #include <state.h>
 #include <move.h>
 #include <cmath>
@@ -33,7 +34,7 @@ float StrategyDFS::minimizer(State& s, const Move& move, unsigned depth, const u
                 return m_heur->evaluate(s, move, State::AI_PIECE);
         }
 
-        float score = +INFINITY;
+        float score = +FLT_MAX;
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) != State::NO_PIECE)
@@ -59,7 +60,7 @@ float StrategyDFS::maximizer(State& s, const Move& move, unsigned depth, const u
                 return m_heur->evaluate(s, move, State::HUMAN_PIECE);
         }
 
-        float score = -INFINITY;
+        float score = -FLT_MAX;
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) != State::NO_PIECE)
@@ -81,7 +82,7 @@ float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
 {
         bool has_set = false;
 
-        float score = -INFINITY;
+        float score = -FLT_MAX;
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) != State::NO_PIECE)
