@@ -168,7 +168,7 @@ static float full_board_eval(const State& k, const Move& next_move, int who)
         float p0 = - old_ai_score + new_ai_score;
         float p1 = - old_oppo_score + new_oppo_score;
 
-        return p0;
+        return p0 - p1;
 }
 
 static float incremental_eval(const State& k, const Move& next_move, const int who)

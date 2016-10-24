@@ -29,7 +29,7 @@ static int tst_strategydfs()
         strategy.load_state(s);
 
         std::cout << "Analysis: " << std::endl;
-        strategy.print_analysis(std::cout, s, 3);
+        strategy.print_analysis(std::cout, s, 1);
 
         std::cout << "Making move: " << std::endl;
         strategy.make_move(s, m);
