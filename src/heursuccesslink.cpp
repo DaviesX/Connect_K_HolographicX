@@ -84,8 +84,9 @@ static bool eval_cr(const int* val, int x, int y, unsigned dist, void* data)
 // Tells me the effective degrees of freedom in direction d.
 static float cr(const State& s, int x, int y, int who, unsigned d, int l, int k)
 {
-        //float emergence = k/(float) (k - l);
-        return 1.0f/(float) s.scan(x, y, d, ::eval_cr, &who)*l*l*l;
+        float emergence = k/(float) (k - l);
+        float dist = (float) s.scan(x, y, d, ::eval_cr, &who);
+        return 1.0f/(dist*dist)*l*l*l;
 }
 
 static float eval_xy_oppo(const State& s, int x, int y, int who)
