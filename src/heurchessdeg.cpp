@@ -3,7 +3,7 @@
 #include <vector>
 #include <utility>
 #include <state.h>
-#include <heursuccesslink.h>
+#include <heurchessdeg.h>
 
 typedef std::pair<unsigned, unsigned> chess_pos_t;
 
@@ -35,7 +35,7 @@ static bool eval_fr(const int* val, int x, int y, unsigned dist, void* data)
         } else if (*val == fr->who) {
                 // Space or our chess.
                 fr->score += fr->l/(float) dist;
-                return true;
+                return false;
         } else {
                 // Opponent.
                 return false;
@@ -84,7 +84,6 @@ static bool eval_cr(const int* val, int x, int y, unsigned dist, void* data)
 // Tells me the effective degrees of freedom in direction d.
 static float cr(const State& s, int x, int y, int who, unsigned d, int l, int k)
 {
-        float emergence = k/(float) (k - l);
         float dist = (float) s.scan(x, y, d, ::eval_cr, &who);
         return 1.0f/(dist*dist)*l*l;
 }
@@ -178,17 +177,7 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
 
         std::vector<chess_pos_t> affected_ai, affected_oppo;
         ::find_affected_chess(s, next_move, affected_ai, affected_oppo);
-/*
-        float old_ai_score = 0;
-        for (unsigned i = 0; i < affected_ai.size(); i ++) {
-                old_ai_score += ::eval_xy(s, affected_ai[i].first, affected_ai[i].second, State::AI_PIECE);
-        }
 
-        float old_oppo_score = 0;
-        for (unsigned i = 0; i < affected_oppo.size(); i ++) {
-                old_oppo_score += ::eval_xy(s, affected_oppo[i].first, affected_oppo[i].second, State::HUMAN_PIECE);
-        }
-*/
         int n_ai = affected_ai.size();
         int n_oppo = affected_oppo.size();
 
@@ -221,7 +210,7 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
 }
 
 // Public API.
-float HeuristicSuccessLink::evaluate(const State& k, const Move& next_move, int who)
+float HeuristicChessDegree::evaluate(const State& k, const Move& next_move, int who)
 {
         return ::incremental_eval(k, next_move, who);
         //return ::full_board_eval(k, next_move, who);

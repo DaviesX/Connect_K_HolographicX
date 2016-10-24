@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <tst_state.h>
-#include <heursuccesslink.h>
+#include <heurchessdeg.h>
 
 
 inline static int tst_heursuccesslink()
@@ -13,7 +13,7 @@ inline static int tst_heursuccesslink()
         std::cout << "Preview: " << std::endl;
         std::cout << s << std::endl;
 
-        HeuristicSuccessLink h;
+        HeuristicChessDegree h;
         h.load_state(s);
 
         for (unsigned y = 0; y < s.num_rows; y ++) {

@@ -13,7 +13,6 @@ CONFIG -= qt
 INCLUDEPATH += src
 
 SOURCES += \
-    src/heursuccesslink.cpp \
     src/iheuristic.cpp \
     src/istrategy.cpp \
     src/log.cpp \
@@ -23,10 +22,10 @@ SOURCES += \
     src/stopwatch.cpp \
     src/strategydfs.cpp \
     src/strategyfactory.cpp \
-    src/strategyrand.cpp
+    src/strategyrand.cpp \
+    src/heurchessdeg.cpp
 
 HEADERS += \
-    src/heursuccesslink.h \
     src/iheuristic.h \
     src/istrategy.h \
     src/log.h \
@@ -38,4 +37,5 @@ HEADERS += \
     src/strategyrand.h \
     src/tst_heursuccesslink.h \
     src/tst_state.h \
-    src/tst_strategydfs.h
+    src/tst_strategydfs.h \
+    src/heurchessdeg.h

@@ -8,12 +8,12 @@
 #include <cmath>
 #include <strategydfs.h>
 #include <iheuristic.h>
-#include <heursuccesslink.h>
+#include <heurchessdeg.h>
 
 
 StrategyDFS::StrategyDFS()
 {
-        m_heur = new HeuristicSuccessLink();
+        m_heur = new HeuristicChessDegree();
 }
 
 StrategyDFS::~StrategyDFS()
@@ -145,7 +145,7 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move)
 
 void StrategyDFS::make_move(const State& s, Move& m)
 {
-        abmin_max_move((State&) s, 5, m);
+        abmin_max_move((State&) s, 4, m);
 }
 
 

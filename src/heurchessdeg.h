@@ -3,7 +3,7 @@
 
 #include <iheuristic.h>
 
-class HeuristicSuccessLink: public IHeuristic
+class HeuristicChessDegree: public IHeuristic
 {
 public:
         float   evaluate(const State& s, const Move& next_move, int who) override;
