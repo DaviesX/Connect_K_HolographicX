@@ -6,8 +6,8 @@
 
 
 // Helpers
-static unsigned inline scan_on(const int* board, const int w, const int h, const int k,
-                               int x, int y, const unsigned d,
+static unsigned inline move_xy(const int* board, const int w, const int h, const int k,
+                               int& x, int& y, const unsigned d,
                                scan_eval_t eval, void* data)
 {
         int counter;
@@ -81,6 +81,13 @@ static unsigned inline scan_on(const int* board, const int w, const int h, const
                         break;
         }
         return counter;
+}
+
+static unsigned inline scan_on(const int* board, const int w, const int h, const int k,
+                               int x, int y, const unsigned d,
+                               scan_eval_t eval, void* data)
+{
+        return ::move_xy(board, w, h, k, x, y, d, eval, data);
 }
 
 static bool goal_eval(const int* val, int x, int y, unsigned dist, void* data)
@@ -175,7 +182,12 @@ unsigned State::scan(int x, int y, unsigned d, scan_eval_t eval, void* data) con
         return ::scan_on(m_board, num_cols, num_rows, k, x, y, d, eval, data);
 }
 
-unsigned State::collides_on(int x, int y, unsigned d, int dist) const
+unsigned State::move_xy(int x, int y, unsigned d, scan_eval_t eval, void* data) const
+{
+        return ::move_xy(m_board, num_cols, num_rows, k, x, y, d, eval, data);
+}
+
+unsigned State::collides_edges(int x, int y, unsigned d, int dist) const
 {
         switch (d) {
         case 0:

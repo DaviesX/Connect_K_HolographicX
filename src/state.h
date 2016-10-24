@@ -67,7 +67,8 @@ public:
         bool                                    is_goal_for(const Move& m, int who) const;
         bool                                    is_goal_for(int who) const;
         unsigned                                scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
-        unsigned                                collides_on(int x, int y, unsigned d, int dist) const;
+        unsigned                                move_xy(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
+        unsigned                                collides_edges(int x, int y, unsigned d, int dist) const;
 
         float                                   current_score() const;
         const std::vector<State::MiniNode>&     path() const;
