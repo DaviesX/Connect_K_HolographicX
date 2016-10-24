@@ -104,7 +104,7 @@ float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
 
 void StrategyDFS::make_move(const State& s, Move& m)
 {
-        min_max_move((State&) s, 4, m);
+        min_max_move((State&) s, 3, m);
 }
 
 

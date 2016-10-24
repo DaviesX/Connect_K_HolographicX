@@ -175,6 +175,30 @@ unsigned State::scan(int x, int y, unsigned d, scan_eval_t eval, void* data) con
         return ::scan_on(m_board, num_cols, num_rows, k, x, y, d, eval, data);
 }
 
+unsigned State::collides_on(int x, int y, unsigned d, int dist) const
+{
+        switch (d) {
+        case 0:
+                return x + dist >= (int) num_cols;
+        case 1:
+                return x + dist >= (int) num_cols || y - dist < 0;
+        case 2:
+                return y - dist < 0;
+        case 3:
+                return x - dist < 0 || y - dist < 0;
+        case 4:
+                return x - dist < 0;
+        case 5:
+                return x - dist < 0 || y + dist >= (int) num_rows;
+        case 6:
+                return y + dist >= (int) num_rows;
+        case 7:
+                return x + dist >= (int) num_cols || y + dist >= (int) num_rows;
+        default:
+                return false;
+        }
+}
+
 const std::vector<State::MiniNode>& State::path() const
 {
         return m_stack;

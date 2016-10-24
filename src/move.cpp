@@ -22,6 +22,6 @@ void Move::set(unsigned x, unsigned y)
 
 std::ostream& operator<<(std::ostream& os, const Move& move)
 {
-        os << "Move = [" << move.row << "," << move.col << "]";
+        os << "Move = [" << move.col << "," << move.row << "]";
         return os;
 }

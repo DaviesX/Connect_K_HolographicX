@@ -14,8 +14,11 @@ static int tst_strategydfs()
 
         // State s = ::tst_state_create_sample();
         // State s = ::tst_state_create_sample2();
+        // State s = ::tst_state_create_sample3();
         // State s = ::tst_state_create_sample4();
-        State s = ::tst_state_create_sample5();
+        // State s = ::tst_state_create_sample5();
+        // State s = ::tst_state_create_sample6();
+        State s = ::tst_state_create_sample7();
 
         std::cout << "Preview state:" << std::endl;
         std::cout << s << std::endl;
