@@ -26,7 +26,7 @@ void StrategyDFS::load_state(const State& s)
         m_heur->load_state(s);
 }
 
-float StrategyDFS::minimizer(State& s, const Move& move, unsigned depth, const unsigned& limit)
+float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit)
 {
         if (s.is_goal_for(move, State::AI_PIECE))
                 return INFINITY;
@@ -35,15 +35,18 @@ float StrategyDFS::minimizer(State& s, const Move& move, unsigned depth, const u
                 return m_heur->evaluate(s, move, State::AI_PIECE);
         }
 
-        float score = +FLT_MAX;
+        float score = beta;
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) != State::NO_PIECE)
                                 continue;
 
                         s.set_move(x, y, State::HUMAN_PIECE);
-                        float cur_score = maximizer(s, Move(x, y), depth + 1, limit);
+                        float cur_score = maximizer(s, Move(x, y), alpha, score, depth + 1, limit);
                         s.set_move(x, y, State::NO_PIECE);
+
+                        if (cur_score <= alpha)
+                                return -INFINITY;
 
                         if (cur_score < score)
                                 score = cur_score;
@@ -52,7 +55,7 @@ float StrategyDFS::minimizer(State& s, const Move& move, unsigned depth, const u
         return score;
 }
 
-float StrategyDFS::maximizer(State& s, const Move& move, unsigned depth, const unsigned& limit)
+float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit)
 {
         if (s.is_goal_for(move, State::HUMAN_PIECE))
                 return -INFINITY;
@@ -61,15 +64,18 @@ float StrategyDFS::maximizer(State& s, const Move& move, unsigned depth, const u
                 return m_heur->evaluate(s, move, State::HUMAN_PIECE);
         }
 
-        float score = -FLT_MAX;
+        float score = alpha;
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) != State::NO_PIECE)
                                 continue;
 
                         s.set_move(x, y, State::AI_PIECE);
-                        float cur_score = minimizer(s, Move(x, y), depth + 1, limit);
+                        float cur_score = minimizer(s, Move(x, y), score, beta, depth + 1, limit);
                         s.set_move(x, y, State::NO_PIECE);
+
+                        if (cur_score >= beta)
+                                return INFINITY;
 
                         if (cur_score >= score)
                                 score = cur_score;
@@ -94,7 +100,7 @@ void StrategyDFS::build_actions(State& s, std::vector<AvailableAction>& actions)
         std::sort(actions.begin(), actions.end(), [](const AvailableAction& a, const AvailableAction& b) {return a > b;});
 }
 
-float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
+float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move)
 {
         bool has_set = false;
         float score = -INFINITY;
@@ -105,7 +111,7 @@ float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
         for (unsigned i = 0; i < actions.size(); i ++) {
                 AvailableAction action = actions[i];
                 s.set_move(action.x, action.y, State::AI_PIECE);
-                float cur_score = minimizer(s, Move(action.x, action.y), 1, limit);
+                float cur_score = minimizer(s, Move(action.x, action.y), -FLT_MAX, FLT_MAX, 1, limit);
                 s.set_move(action.x, action.y, State::NO_PIECE);
 
                 if (cur_score > score || (!has_set && cur_score >= score)) {
@@ -119,7 +125,7 @@ float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
 
 void StrategyDFS::make_move(const State& s, Move& m)
 {
-        min_max_move((State&) s, 4, m);
+        abmin_max_move((State&) s, 4, m);
 }
 
 
@@ -135,7 +141,7 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth)
                         }
 
                         s.set_move(x, y, State::AI_PIECE);
-                        float cur_score = minimizer(s, Move(x, y), 1, depth);
+                        float cur_score = minimizer(s, Move(x, y), -FLT_MAX, FLT_MAX, 1, depth);
                         s.set_move(x, y, State::NO_PIECE);
 
                         os << cur_score << "\t";
