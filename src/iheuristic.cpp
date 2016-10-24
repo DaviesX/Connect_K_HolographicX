@@ -14,7 +14,11 @@ void IHeuristic::load_state(const State& s)
 {
 }
 
-void IHeuristic::accept(const Move& m, int who, float score)
+void IHeuristic::try_move(const Move& m, int who)
+{
+}
+
+void IHeuristic::untry_move(const Move& m, int who)
 {
 }
 

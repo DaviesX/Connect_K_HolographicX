@@ -6,7 +6,7 @@
 #include <heurchessdeg.h>
 
 
-inline static int tst_heursuccesslink()
+inline static int tst_heurchessdeg()
 {
         State s = tst_state_create_sample3();
 

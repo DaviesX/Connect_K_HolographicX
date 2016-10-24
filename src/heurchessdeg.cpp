@@ -210,7 +210,7 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
 }
 
 // Public API.
-float HeuristicChessDegree::evaluate(const State& k, const Move& next_move, int who)
+float HeuristicChessDegree::evaluate(const State& k, const Move& next_move, int who) const
 {
         return ::incremental_eval(k, next_move, who);
         //return ::full_board_eval(k, next_move, who);
