@@ -86,7 +86,7 @@ static float cr(const State& s, int x, int y, int who, unsigned d, int l, int k)
 {
         float emergence = k/(float) (k - l);
         float dist = (float) s.scan(x, y, d, ::eval_cr, &who);
-        return 1.0f/(dist*dist)*l*l*l;
+        return 1.0f/(dist*dist)*l*l;
 }
 
 static float eval_xy_oppo(const State& s, int x, int y, int who)
@@ -199,14 +199,14 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
         }
         float new_oppo_score = 0;
         for (unsigned i = 0; i < affected_oppo.size(); i ++) {
-                new_oppo_score += ::eval_xy_oppo(s, affected_oppo[i].first, affected_oppo[i].second, State::HUMAN_PIECE);
+                new_oppo_score += ::eval_xy(s, affected_oppo[i].first, affected_oppo[i].second, State::HUMAN_PIECE);
         }
 
         if (who == State::AI_PIECE) {
                 new_ai_score += ::eval_xy(s, next_move.col, next_move.row, State::AI_PIECE);
                 n_ai ++;
         } else {
-                new_oppo_score += ::eval_xy_oppo(s, next_move.col, next_move.row, State::HUMAN_PIECE);
+                new_oppo_score += ::eval_xy(s, next_move.col, next_move.row, State::HUMAN_PIECE);
                 n_oppo ++;
         }
         s.set_move(next_move.col, next_move.row, State::NO_PIECE);
@@ -217,7 +217,7 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
         float p0 = new_ai_score/n_ai;
         float p1 = new_oppo_score/n_oppo;
 
-        return p0 + p1;
+        return p0 - p1;
 }
 
 // Public API.

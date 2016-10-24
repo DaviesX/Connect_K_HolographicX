@@ -1,4 +1,5 @@
 #include <cmath>
+#include <algorithm>
 #include <iostream>
 #include <ostream>
 #include <float.h>
@@ -78,25 +79,39 @@ float StrategyDFS::maximizer(State& s, const Move& move, unsigned depth, const u
         return score;
 }
 
-float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
-{
-        bool has_set = false;
 
-        float score = -INFINITY;
+void StrategyDFS::build_actions(State& s, std::vector<AvailableAction>& actions)
+{
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) != State::NO_PIECE)
                                 continue;
+                        float est = m_heur->evaluate(s, Move(x, y), State::AI_PIECE);
+                        actions.push_back(AvailableAction(x, y, est));
+                }
+        }
+        std::random_shuffle(actions.begin(), actions.end());
+        std::sort(actions.begin(), actions.end(), [](const AvailableAction& a, const AvailableAction& b) {return a > b;});
+}
 
-                        s.set_move(x, y, State::AI_PIECE);
-                        float cur_score = minimizer(s, Move(x, y), 1, limit);
-                        s.set_move(x, y, State::NO_PIECE);
+float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
+{
+        bool has_set = false;
+        float score = -INFINITY;
 
-                        if (cur_score > score || (!has_set && cur_score >= score)) {
-                                move.set(x, y);
-                                score = cur_score;
-                                has_set = true;
-                        }
+        std::vector<AvailableAction> actions;
+        build_actions(s, actions);
+
+        for (unsigned i = 0; i < actions.size(); i ++) {
+                AvailableAction action = actions[i];
+                s.set_move(action.x, action.y, State::AI_PIECE);
+                float cur_score = minimizer(s, Move(action.x, action.y), 1, limit);
+                s.set_move(action.x, action.y, State::NO_PIECE);
+
+                if (cur_score > score || (!has_set && cur_score >= score)) {
+                        move.set(action.x, action.y);
+                        score = cur_score;
+                        has_set = true;
                 }
         }
         return score;
@@ -104,7 +119,7 @@ float StrategyDFS::min_max_move(State& s, unsigned limit, Move& move)
 
 void StrategyDFS::make_move(const State& s, Move& m)
 {
-        min_max_move((State&) s, 3, m);
+        min_max_move((State&) s, 4, m);
 }
 
 
