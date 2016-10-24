@@ -12,7 +12,7 @@ void StrategyRandom::load_state(const State& s)
 {
 }
 
-void StrategyRandom::make_move(const State& s, Move& m)
+void StrategyRandom::make_move(const State& s, Move& m) const
 {
         int x, y;
         do {

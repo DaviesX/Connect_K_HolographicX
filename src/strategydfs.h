@@ -12,8 +12,8 @@ public:
         ~StrategyDFS() override;
 
         void            load_state(const State& s) override;
-        void            make_move(const State& s, Move& m) override;
-        void            print_analysis(std::ostream& os, const State& s, int depth);
+        void            make_move(const State& s, Move& m) const override;
+        void            print_analysis(std::ostream& os, const State& s, int depth) const;
 private:
         struct AvailableAction
         {
@@ -37,11 +37,11 @@ private:
                 float   score;
         };
 
-        float           minimizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit);
-        float           maximizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit);
-        float           abmin_max_move(State& s, unsigned limit, Move& move);
-        void            build_actions_fast(State& s, unsigned depth, int who, std::vector<AvailableAction>& actions);
-        void            build_actions(State& s, std::vector<AvailableAction>& actions);
+        float           minimizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const;
+        float           maximizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const;
+        float           abmin_max_move(State& s, unsigned limit, Move& move) const;
+        void            build_actions_fast(State& s, unsigned depth, int who, std::vector<AvailableAction>& actions) const;
+
         IHeuristic*     m_heur;
 };
 

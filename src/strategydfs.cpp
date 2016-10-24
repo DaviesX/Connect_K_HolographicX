@@ -26,7 +26,7 @@ void StrategyDFS::load_state(const State& s)
         m_heur->load_state(s);
 }
 
-float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit)
+float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const
 {
         if (s.is_goal_for(move, State::AI_PIECE))
                 return INFINITY;
@@ -53,7 +53,7 @@ float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta
         return score;
 }
 
-float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit)
+float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const
 {
         if (s.is_goal_for(move, State::HUMAN_PIECE))
                 return -INFINITY;
@@ -81,7 +81,7 @@ float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta
         return score;
 }
 
-void StrategyDFS::build_actions_fast(State& s, unsigned depth, int who, std::vector<AvailableAction>& actions)
+void StrategyDFS::build_actions_fast(State& s, unsigned depth, int who, std::vector<AvailableAction>& actions) const
 {
         if (depth <= 2) {
                 for (unsigned y = 0; y < s.num_rows; y ++) {
@@ -106,27 +106,13 @@ void StrategyDFS::build_actions_fast(State& s, unsigned depth, int who, std::vec
         }
 }
 
-void StrategyDFS::build_actions(State& s, std::vector<AvailableAction>& actions)
-{
-        for (unsigned y = 0; y < s.num_rows; y ++) {
-                for (unsigned x = 0; x < s.num_cols; x ++) {
-                        if (s.is(x, y) != State::NO_PIECE)
-                                continue;
-                        float est = m_heur->evaluate(s, Move(x, y), State::AI_PIECE);
-                        actions.push_back(AvailableAction(x, y, est));
-                }
-        }
-        std::random_shuffle(actions.begin(), actions.end());
-        std::sort(actions.begin(), actions.end(), [](const AvailableAction& a, const AvailableAction& b) {return a > b;});
-}
-
-float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move)
+float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move) const
 {
         bool has_set = false;
         float score = -INFINITY;
 
         std::vector<AvailableAction> actions;
-        build_actions(s, actions);
+        build_actions_fast(s, 0, State::AI_PIECE, actions);
 
         for (unsigned i = 0; i < actions.size(); i ++) {
                 AvailableAction action = actions[i];
@@ -143,13 +129,13 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move)
         return score;
 }
 
-void StrategyDFS::make_move(const State& s, Move& m)
+void StrategyDFS::make_move(const State& s, Move& m) const
 {
         abmin_max_move((State&) s, 4, m);
 }
 
 
-void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth)
+void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth) const
 {
         State& s = (State&) k;
 
