@@ -9,7 +9,7 @@ CXXFLAGS+=-Ofast -flto
 LDFLAGS+=-Ofast -flto
 
 # Output executable and default target.
-BIN=bin/HolographicXAI
+BIN=bin/HolographicXAI.exe
 .DEFAULT_GOAL=$(BIN)
 
 # Source directory
@@ -30,6 +30,7 @@ CL="\033[92m"
 CR="\033[0m"
 
 $(BIN): $(OBJS)
+	@mkdir -p bin
 	@echo $(CL)"Linking into" $(BIN) $(CR)
 	@$(CXX) $(OBJS) $(LDFLAGS) -o $(BIN)
 	@echo $(CL)"Done."$(CR)
