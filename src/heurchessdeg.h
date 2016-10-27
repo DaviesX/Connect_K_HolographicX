@@ -1,5 +1,5 @@
-#ifndef HEUR_SUCCESS_LINK_H
-#define HEUR_SUCCESS_LINK_H
+#ifndef HEUR_CHESS_DEG_H
+#define HEUR_CHESS_DEG_H
 
 #include <iheuristic.h>
 

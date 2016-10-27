@@ -36,8 +36,9 @@ HEADERS += \
     src/strategydfs.h \
     src/strategyfactory.h \
     src/strategyrand.h \
-    src/tst_heursuccesslink.h \
     src/tst_state.h \
     src/tst_strategydfs.h \
     src/heurchessdeg.h \
-    src/heurcostbenefit.h
+    src/heurcostbenefit.h \
+    src/tst_heurchessdeg.h \
+    src/tst_heurcostbenefit.h

@@ -85,12 +85,13 @@ void return_move(const Move& move)
 
 // Unit tests
 #include <tst_state.h>
-#include <tst_heursuccesslink.h>
+#include <tst_heurcostbenefit.h>
+#include <tst_heurchessdeg.h>
 #include <tst_strategydfs.h>
 
 int main()
 {
-#if 1
+#if 0
         std::cout << "Make sure this program is ran by the Java shell. It is incomplete on its own. " << std::endl;
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
         do {
@@ -104,6 +105,7 @@ int main()
         return EXIT_SUCCESS;
 #else
         // return tst_heursuccesslink();
+        // tst_heurcostbenefit();
         return tst_strategydfs();
         // return tst_state();
         // return tst_state2();

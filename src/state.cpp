@@ -182,12 +182,12 @@ unsigned State::scan(int x, int y, unsigned d, scan_eval_t eval, void* data) con
         return ::scan_on(m_board, num_cols, num_rows, k, x, y, d, eval, data);
 }
 
-unsigned State::move_xy(int x, int y, unsigned d, scan_eval_t eval, void* data) const
+unsigned State::move_xy(int& x, int& y, unsigned d, scan_eval_t eval, void* data) const
 {
         return ::move_xy(m_board, num_cols, num_rows, k, x, y, d, eval, data);
 }
 
-unsigned State::collides_edges(int x, int y, unsigned d, int dist) const
+bool State::collides_edges(int x, int y, unsigned d, int dist) const
 {
         switch (d) {
         case 0:
@@ -206,6 +206,30 @@ unsigned State::collides_edges(int x, int y, unsigned d, int dist) const
                 return y + dist >= (int) num_rows;
         case 7:
                 return x + dist >= (int) num_cols || y + dist >= (int) num_rows;
+        default:
+                return false;
+        }
+}
+
+bool State::collides_edges(int x, int y, unsigned d) const
+{
+        switch (d) {
+        case 0:
+                return x >= (int) num_cols;
+        case 1:
+                return x >= (int) num_cols || y < 0;
+        case 2:
+                return y < 0;
+        case 3:
+                return x < 0 || y < 0;
+        case 4:
+                return x < 0;
+        case 5:
+                return x < 0 || y >= (int) num_rows;
+        case 6:
+                return y >= (int) num_rows;
+        case 7:
+                return x >= (int) num_cols || y >= (int) num_rows;
         default:
                 return false;
         }

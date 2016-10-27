@@ -14,6 +14,7 @@ public:
         void            load_state(const State& s) override;
         void            make_move(const State& s, Move& m) const override;
         void            print_analysis(std::ostream& os, const State& s, int depth) const;
+        void            print_analysis(std::ostream& os, const State& k, int depth, unsigned x, unsigned y) const;
 private:
         struct AvailableAction
         {

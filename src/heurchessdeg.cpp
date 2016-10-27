@@ -154,7 +154,7 @@ static float full_board_eval_for(const State& s, int who)
 static float full_board_eval(const State& k, const Move& next_move, int who)
 {
         // Faking a const operation.
-        State& s = (State&) k;
+        State& s = const_cast<State&>(k);
 
         float old_ai_score = full_board_eval_for(s, State::AI_PIECE);
         float old_oppo_score = full_board_eval_for(s, State::HUMAN_PIECE);
@@ -173,7 +173,7 @@ static float full_board_eval(const State& k, const Move& next_move, int who)
 static float incremental_eval(const State& k, const Move& next_move, const int who)
 {
         // Faking a const operation.
-        State& s = (State&) k;
+        State& s = const_cast<State&>(k);
 
         std::vector<chess_pos_t> affected_ai, affected_oppo;
         ::find_affected_chess(s, next_move, affected_ai, affected_oppo);

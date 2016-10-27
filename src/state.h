@@ -67,8 +67,9 @@ public:
         bool                                    is_goal_for(const Move& m, int who) const;
         bool                                    is_goal_for(int who) const;
         unsigned                                scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
-        unsigned                                move_xy(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
-        unsigned                                collides_edges(int x, int y, unsigned d, int dist) const;
+        unsigned                                move_xy(int& x, int& y, unsigned d, scan_eval_t eval, void* data) const;
+        bool                                    collides_edges(int x, int y, unsigned d, int dist) const;
+        bool                                    collides_edges(int x, int y, unsigned d) const;
 
         float                                   current_score() const;
         const std::vector<State::MiniNode>&     path() const;
@@ -84,7 +85,9 @@ private:
         std::vector<State::MiniNode>    m_stack;                        // Action path
 };
 
-std::ostream& operator<<(std::ostream& os, const State& s);
+std::ostream&   operator<<(std::ostream& os, const State& s);
+
+#define opponent_of(__who)              ((__who) == State::AI_PIECE ? State::HUMAN_PIECE : State::AI_PIECE)
 
 
 #endif // STATE_H
