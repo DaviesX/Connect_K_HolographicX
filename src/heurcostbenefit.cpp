@@ -28,7 +28,7 @@ struct LinkStat
         int             oppo;
 };
 
-static bool linkage(const int* val, int x, int y, unsigned dist, void* data)
+static bool linkage(const char* val, int x, int y, unsigned dist, void* data)
 {
         if (dist == 0)
                 return true;
@@ -94,16 +94,13 @@ float HeuristicCostBenefit::benefit(const State& s, const Move& next_move, int w
 
 float HeuristicCostBenefit::cost(const State& s, const Move& next_move, int who) const
 {
-        return benefit(s, next_move, opponent_of(who), 1);
+        return benefit(s, next_move, who, 1);
 }
 
-float HeuristicCostBenefit::evaluate(const State& k, const Move& next_move, int who) const
+float HeuristicCostBenefit::evaluate(const State& s, const Move& next_move, int who) const
 {
-        State& s = const_cast<State&>(k);
-        s.set_move(next_move.col, next_move.row, who);
-        float cost = this->cost(s, next_move, who);
-        float benefit = this->benefit(s, next_move, who, 1);
+        float cost = this->cost(s, next_move, opponent_of(State::AI_PIECE));
+        float benefit = this->benefit(s, next_move, State::AI_PIECE, 1);
         float score = cost + benefit;
-        s.set_move(next_move.col, next_move.row, State::NO_PIECE);
         return score;
 }

@@ -91,7 +91,7 @@ void return_move(const Move& move)
 
 int main()
 {
-#if 0
+#if 1
         std::cout << "Make sure this program is ran by the Java shell. It is incomplete on its own. " << std::endl;
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
         do {

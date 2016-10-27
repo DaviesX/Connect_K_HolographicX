@@ -1,4 +1,3 @@
-#include <cmath>
 #include <algorithm>
 #include <iostream>
 #include <ostream>
@@ -6,6 +5,7 @@
 #include <state.h>
 #include <move.h>
 #include <cmath>
+#include <ctime>
 #include <strategydfs.h>
 #include <iheuristic.h>
 #include <heurchessdeg.h>
@@ -31,7 +31,6 @@ void StrategyDFS::load_state(const State& s)
 float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const
 {
         if (s.is_goal_for(move, State::AI_PIECE))
-                // return m_heur->evaluate(s, move, State::AI_PIECE);
                 return INFINITY;
 
         if (depth >= limit) {
@@ -42,6 +41,7 @@ float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta
         build_actions_fast(s, depth, State::HUMAN_PIECE, actions);
 
         float score = beta;
+        //float score = FLT_MAX;
         for (AvailableAction action: actions) {
                 s.set_move(action.x, action.y, State::HUMAN_PIECE);
                 float cur_score = maximizer(s, Move(action.x, action.y), alpha, score, depth + 1, limit);
@@ -53,13 +53,13 @@ float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta
                 if (cur_score < score)
                         score = cur_score;
         }
+
         return score;
 }
 
 float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const
 {
         if (s.is_goal_for(move, State::HUMAN_PIECE))
-                // return m_heur->evaluate(s, move, State::HUMAN_PIECE);
                 return -INFINITY;
 
         if (depth >= limit) {
@@ -70,6 +70,7 @@ float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta
         build_actions_fast(s, depth, State::AI_PIECE, actions);
 
         float score = alpha;
+        // float score = -FLT_MAX;
         for (AvailableAction action: actions) {
                 s.set_move(action.x, action.y, State::AI_PIECE);
                 float cur_score = minimizer(s, Move(action.x, action.y), score, beta, depth + 1, limit);
@@ -78,7 +79,7 @@ float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta
                 if (cur_score >= beta)
                         return INFINITY;
 
-                if (cur_score >= score)
+                if (cur_score > score)
                         score = cur_score;
         }
 
@@ -135,7 +136,8 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move) const
 
 void StrategyDFS::make_move(const State& s, Move& m) const
 {
-        abmin_max_move((State&) s, 5, m);
+        std::srand(std::time(nullptr));
+        abmin_max_move((State&) s, 6, m);
 }
 
 

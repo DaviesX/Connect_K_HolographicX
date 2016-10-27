@@ -28,7 +28,7 @@ static inline int tst_heurcostbenefit()
         }
 #else
         std::cout << "Move value ";
-        std::cout << h.evaluate(s, Move(5, 1), State::AI_PIECE) << "\t";
+        std::cout << h.evaluate(s, Move(3, 3), State::AI_PIECE) << "\t";
 #endif
         return 0;
 }

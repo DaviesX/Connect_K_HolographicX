@@ -6,7 +6,7 @@
 
 
 // Helpers
-static unsigned inline move_xy(const int* board, const int w, const int h, const int k,
+static unsigned inline move_xy(const char* board, const int w, const int h, const int k,
                                int& x, int& y, const unsigned d,
                                scan_eval_t eval, void* data)
 {
@@ -83,19 +83,19 @@ static unsigned inline move_xy(const int* board, const int w, const int h, const
         return counter;
 }
 
-static unsigned inline scan_on(const int* board, const int w, const int h, const int k,
+static unsigned inline scan_on(const char* board, const int w, const int h, const int k,
                                int x, int y, const unsigned d,
                                scan_eval_t eval, void* data)
 {
         return ::move_xy(board, w, h, k, x, y, d, eval, data);
 }
 
-static bool goal_eval(const int* val, int x, int y, unsigned dist, void* data)
+static bool goal_eval(const char* val, int x, int y, unsigned dist, void* data)
 {
         return *val == *(int*) data;
 }
 
-static bool is_goal_for(const int* board, unsigned w, unsigned h, const Move& move, int who, unsigned k)
+static bool is_goal_for(const char* board, unsigned w, unsigned h, const Move& move, int who, unsigned k)
 {
         return (::scan_on(board, w, h, k, move.col, move.row, 0, ::goal_eval, &who) +
                 ::scan_on(board, w, h, k, move.col, move.row, 4, ::goal_eval, &who)) > k ||
@@ -124,7 +124,7 @@ State::State(const unsigned num_cols,
         deadline(deadline),
         k(k)
 {
-        m_board = new int [num_cols*num_rows];
+        m_board = new char [num_cols*num_rows];
         for (unsigned i = 0; i < num_cols*num_rows; i ++)
                 m_board[i] = State::NO_PIECE;
 }
@@ -139,7 +139,7 @@ State::State(const State& s):
         m_goal_for(s.m_goal_for),
         m_stack(s.m_stack)
 {
-        m_board = new int [num_cols*num_rows];
+        m_board = new char [num_cols*num_rows];
         for (unsigned y = 0; y < num_rows; y ++) {
                 for (unsigned x = 0; x < num_cols; x ++) {
                         m_board[x + y*num_cols] = s.m_board[x + y*s.num_cols];
@@ -278,7 +278,7 @@ std::ostream& operator<<(std::ostream& os, const State& s)
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 os << "\t";
                 for (unsigned x = 0; x < s.num_cols; x ++) {
-                        os << s.m_board[x + y*s.num_cols] << "\t";
+                        os << (int) s.m_board[x + y*s.num_cols] << "\t";
                 }
                 os << std::endl;
         }

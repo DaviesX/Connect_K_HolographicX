@@ -5,7 +5,7 @@
 #include <ostream>
 #include <vector>
 
-typedef bool (*scan_eval_t) (const int* val, int x, int y, unsigned dist, void* data);
+typedef bool (*scan_eval_t) (const char* val, int x, int y, unsigned dist, void* data);
 
 
 /*
@@ -81,7 +81,7 @@ public:
         void                                    reset_all_moves();
 private:
         int                             m_goal_for = State::NO_PIECE;   // Whose goal?
-        int*                            m_board;                        // Gameboard
+        char*                           m_board;                        // Gameboard
         std::vector<State::MiniNode>    m_stack;                        // Action path
 };
 

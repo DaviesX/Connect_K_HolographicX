@@ -22,7 +22,7 @@ struct EvalFRData
         float           score = 0.0f;
 };
 
-static bool eval_fr(const int* val, int x, int y, unsigned dist, void* data)
+static bool eval_fr(const char* val, int x, int y, unsigned dist, void* data)
 {
         if (dist == 0)
                 return true;
@@ -54,7 +54,7 @@ static float fr(const State& s, int x, int y, int who, unsigned d, int l, int k)
         return fr.score;
 }
 
-static bool eval_s(const int* val, int x, int y, unsigned dist, void* data)
+static bool eval_s(const char* val, int x, int y, unsigned dist, void* data)
 {
         return *val == *(int*) data;
 }
@@ -76,7 +76,7 @@ static float eval_xy(const State& s, int x, int y, int who)
         return score;
 }
 
-static bool eval_cr(const int* val, int x, int y, unsigned dist, void* data)
+static bool eval_cr(const char* val, int x, int y, unsigned dist, void* data)
 {
         return dist == 0 || *val == State::NO_PIECE || *val == *(int*) data;
 }
@@ -111,7 +111,7 @@ struct EvalAffectedData
         std::vector<chess_pos_t>&       oppo_chesses;
 };
 
-static bool eval_affected(const int* val, int x, int y, unsigned dist, void* data)
+static bool eval_affected(const char* val, int x, int y, unsigned dist, void* data)
 {
         if (dist == 0)
                 return true;
