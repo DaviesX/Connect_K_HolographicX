@@ -163,7 +163,7 @@ void StrategyDFS::make_move(const State& s, Move& m) const
         watch.begin(9900);
 
         Move curr;
-        unsigned d = 4;
+        unsigned d = 1;
         while (1) {
                 float score = abmin_max_move(const_cast<State&>(s), d ++, curr, watch);
                 if (score == TIME_OUT_CODE)
