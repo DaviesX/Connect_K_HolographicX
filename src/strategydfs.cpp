@@ -160,7 +160,7 @@ void StrategyDFS::make_move(const State& s, Move& m) const
 {
         //std::srand(std::time(nullptr));
         StopWatch watch;
-        watch.begin(9900);
+        watch.begin(10000);
 
         Move curr;
         unsigned d = 1;

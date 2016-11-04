@@ -90,7 +90,7 @@ void return_move(const Move& move)
 
 int main()
 {
-#if 1
+#if 0
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
         do {
                 const State& state = ::obtain_current_state();
