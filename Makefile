@@ -48,6 +48,9 @@ run: $(BIN)
 test: $(BIN)
 	java -jar connectk.jar GoodAI.class cpp:$(BIN)
 
+test2: $(BIN)
+	java -jar connectk.jar AverageAI/AverageAI.class cpp:$(BIN)
+
 unit: $(BIN)
 	gdb ./$(BIN)
 
