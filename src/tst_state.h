@@ -154,34 +154,31 @@ static inline State tst_state_create_sample8()
 
 static inline State tst_state_create_sample9()
 {
-        State s(8, 8, true, Move(5, 3), 5, 5000);
+        State s(9, 7, true, Move(5, 3), 5, 5000);
 
         s.set_move(3, 3, State::AI_PIECE);
-        s.set_move(3, 5, State::AI_PIECE);
-        s.set_move(5, 5, State::AI_PIECE);
-        s.set_move(5, 4, State::AI_PIECE);
+        s.set_move(5, 2, State::AI_PIECE);
         s.set_move(4, 2, State::AI_PIECE);
-        s.set_move(6, 1, State::AI_PIECE);
-        s.set_move(1, 6, State::AI_PIECE);
-        s.set_move(5, 6, State::AI_PIECE);
-        s.set_move(0, 1, State::AI_PIECE);
-        s.set_move(5, 0, State::AI_PIECE);
-        s.set_move(5, 1, State::AI_PIECE);
+        s.set_move(2, 4, State::AI_PIECE);
+        s.set_move(3, 2, State::AI_PIECE);
+        s.set_move(5, 3, State::AI_PIECE);
+        s.set_move(7, 4, State::AI_PIECE);
+        s.set_move(6, 5, State::AI_PIECE);
         s.set_move(2, 2, State::AI_PIECE);
+        s.set_move(2, 3, State::AI_PIECE);
+        s.set_move(8, 1, State::AI_PIECE);
 
         s.set_move(4, 3, State::HUMAN_PIECE);
         s.set_move(3, 4, State::HUMAN_PIECE);
-        s.set_move(3, 2, State::HUMAN_PIECE);
-        s.set_move(4, 5, State::HUMAN_PIECE);
         s.set_move(4, 4, State::HUMAN_PIECE);
-        s.set_move(5, 2, State::HUMAN_PIECE);
-        s.set_move(2, 5, State::HUMAN_PIECE);
-        s.set_move(2, 3, State::HUMAN_PIECE);
-        s.set_move(1, 2, State::HUMAN_PIECE);
-        s.set_move(4, 1, State::HUMAN_PIECE);
-        s.set_move(3, 0, State::HUMAN_PIECE);
-        s.set_move(2, 4, State::HUMAN_PIECE);
+        s.set_move(5, 4, State::HUMAN_PIECE);
+        s.set_move(1, 5, State::HUMAN_PIECE);
+        s.set_move(6, 2, State::HUMAN_PIECE);
+        s.set_move(6, 4, State::HUMAN_PIECE);
         s.set_move(6, 3, State::HUMAN_PIECE);
+        s.set_move(4, 5, State::HUMAN_PIECE);
+        s.set_move(1, 2, State::HUMAN_PIECE);
+        s.set_move(7, 2, State::HUMAN_PIECE);
 
         return s;
 }

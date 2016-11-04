@@ -121,8 +121,14 @@ void StrategyDFS::build_actions_fast(State& s, unsigned depth, std::vector<Avail
         }
 }
 
+const float CHECK_POINT_LIMIT = 0;
+const float TIME_OUT_CODE = -533431;
+
 float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move, StopWatch& watch) const
 {
+        if (watch.check_point() <= CHECK_POINT_LIMIT)
+                return TIME_OUT_CODE;
+
         bool has_set = false;
         float score = -INFINITY;
 
@@ -144,8 +150,8 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move, StopWatc
                         has_set = true;
                 }
 
-                if (watch.check_point() <= 0.05)
-                        return NAN;
+                if (watch.check_point() <= CHECK_POINT_LIMIT)
+                        return TIME_OUT_CODE;
         }
         return score;
 }
@@ -154,15 +160,15 @@ void StrategyDFS::make_move(const State& s, Move& m) const
 {
         //std::srand(std::time(nullptr));
         StopWatch watch;
-        watch.begin(10000);
+        watch.begin(9900);
 
         Move curr;
         unsigned d = 4;
-        while (watch.check_point() > 0.03) {
-                float score = abmin_max_move((State&) s, d, curr, watch);
-                if (score != NAN)
-                        m = curr;
-                d ++;
+        while (1) {
+                float score = abmin_max_move(const_cast<State&>(s), d ++, curr, watch);
+                if (score == TIME_OUT_CODE)
+                        break;
+                m = curr;
         }
 }
 
