@@ -1,6 +1,7 @@
 #ifndef STRATEGYDFS
 #define STRATEGYDFS
 
+#include "stopwatch.h"
 #include "iheuristic.h"
 #include "istrategy.h"
 
@@ -40,7 +41,7 @@ private:
 
         float           minimizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const;
         float           maximizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const;
-        float           abmin_max_move(State& s, unsigned limit, Move& move) const;
+        float           abmin_max_move(State& s, unsigned limit, Move& move, StopWatch& watch) const;
         void            build_actions_fast(State& s, unsigned depth, std::vector<AvailableAction>& actions) const;
 
         IHeuristic*     m_heur;

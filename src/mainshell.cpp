@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include "state.h"
@@ -48,8 +49,6 @@ State obtain_current_state()
                         std::cin >> g;
                         deadline = g;
 
-                        std::cout << "**deadline**" << deadline << std::endl;
-
                         std::cin >> g;
                         int k = g;
 
@@ -80,7 +79,7 @@ void return_move(const Move& move)
         std::string made_move = "ReturningTheMoveMade";
         //outputs made_move then a space then the row then a space then the column
         //then a line break.
-        std::cout << made_move << " " << move.col << " " << move.row << std::endl;
+        std::cout << made_move << " " << move.x << " " << move.y << std::endl;
 }
 
 // Unit tests

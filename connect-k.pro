@@ -9,9 +9,6 @@ CONFIG += c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-
-#INCLUDEPATH += src
-
 SOURCES += \
     src/iheuristic.cpp \
     src/istrategy.cpp \

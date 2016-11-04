@@ -10,7 +10,7 @@ static unsigned inline move_xy(const char* board, const int w, const int h, cons
                                int& x, int& y, const unsigned d,
                                scan_eval_t eval, void* data)
 {
-        int counter;
+        int counter = 0;
 
         // Multiplex each scenarios,
         // so we save the number of comparisons in the long run.
@@ -97,17 +97,17 @@ static bool goal_eval(const char* val, int x, int y, unsigned dist, void* data)
 
 static bool is_goal_for(const char* board, unsigned w, unsigned h, const Move& move, int who, unsigned k)
 {
-        return (::scan_on(board, w, h, k, move.col, move.row, 0, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 4, ::goal_eval, &who)) > k ||
+        return (::scan_on(board, w, h, k, move.x, move.y, 0, ::goal_eval, &who) +
+                ::scan_on(board, w, h, k, move.x, move.y, 4, ::goal_eval, &who)) > k ||
 
-               (::scan_on(board, w, h, k, move.col, move.row, 1, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 5, ::goal_eval, &who)) > k ||
+               (::scan_on(board, w, h, k, move.x, move.y, 1, ::goal_eval, &who) +
+                ::scan_on(board, w, h, k, move.x, move.y, 5, ::goal_eval, &who)) > k ||
 
-               (::scan_on(board, w, h, k, move.col, move.row, 2, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 6, ::goal_eval, &who)) > k ||
+               (::scan_on(board, w, h, k, move.x, move.y, 2, ::goal_eval, &who) +
+                ::scan_on(board, w, h, k, move.x, move.y, 6, ::goal_eval, &who)) > k ||
 
-               (::scan_on(board, w, h, k, move.col, move.row, 3, ::goal_eval, &who) +
-                ::scan_on(board, w, h, k, move.col, move.row, 7, ::goal_eval, &who)) > k;
+               (::scan_on(board, w, h, k, move.x, move.y, 3, ::goal_eval, &who) +
+                ::scan_on(board, w, h, k, move.x, move.y, 7, ::goal_eval, &who)) > k;
 }
 
 // APIs
@@ -252,8 +252,8 @@ void State::push_move(unsigned x, unsigned y, int who)
 void State::prev_move(Move& move) const
 {
         const State::MiniNode& node = m_stack.back();
-        move.col = node.x;
-        move.row = node.y;
+        move.x = node.x;
+        move.y = node.y;
 }
 
 void State::pop_move()

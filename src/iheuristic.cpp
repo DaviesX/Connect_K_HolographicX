@@ -1,4 +1,5 @@
 #include "log.h"
+#include "state.h"
 #include "iheuristic.h"
 
 
@@ -14,11 +15,11 @@ void IHeuristic::load_state(const State& s)
 {
 }
 
-void IHeuristic::try_move(const Move& m, int who)
+void IHeuristic::try_move(const State& s, const Move& m)
 {
 }
 
-void IHeuristic::untry_move(const Move& m, int who)
+void IHeuristic::untry_move()
 {
 }
 

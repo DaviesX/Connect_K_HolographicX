@@ -6,12 +6,14 @@
 class Move
 {
 public:
-	unsigned row; //the row to move to. 
-	unsigned col; //the col to move to.
-	Move();
-	Move(unsigned col, unsigned row);
-        
+        unsigned y; //the row to move to.
+        unsigned x; //the col to move to.
+        Move();
+        Move(unsigned x, unsigned y);
+
         void set(unsigned x, unsigned y);
+
+        const Move& operator=(const Move& rhs);
 };
 
 std::ostream& operator<<(std::ostream& os, const Move& move);

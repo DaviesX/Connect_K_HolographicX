@@ -136,7 +136,7 @@ static void find_affected_chess(const State& s, const Move& move,
 {
         EvalAffectedData data(ai_chesses, oppo_chesses);
         for (unsigned d = 0; d < 8; d ++) {
-                s.scan(move.col, move.row, d, ::eval_affected, &data);
+                s.scan(move.x, move.y, d, ::eval_affected, &data);
         }
 }
 
@@ -151,21 +151,13 @@ static float full_board_eval_for(const State& s, int who)
         return score;
 }
 
-static float full_board_eval(const State& k, const Move& next_move, int who)
+static float full_board_eval(const State& s, const Move& next_move)
 {
-        // Faking a const operation.
-        State& s = const_cast<State&>(k);
-
-        float old_ai_score = full_board_eval_for(s, State::AI_PIECE);
-        float old_oppo_score = full_board_eval_for(s, State::HUMAN_PIECE);
-
-        s.set_move(next_move.col, next_move.row, who);
         float new_ai_score = full_board_eval_for(s, State::AI_PIECE);
         float new_oppo_score = full_board_eval_for(s, State::HUMAN_PIECE);
-        s.set_move(next_move.col, next_move.row, State::NO_PIECE);
 
-        float p0 = - old_ai_score + new_ai_score;
-        float p1 = - old_oppo_score + new_oppo_score;
+        float p0 = new_ai_score;
+        float p1 = new_oppo_score;
 
         return p0 - p1;
 }
@@ -190,11 +182,11 @@ static float incremental_eval(const State& k, const Move& next_move)
                 new_oppo_score += ::eval_xy(s, affected_oppo[i].first, affected_oppo[i].second, State::HUMAN_PIECE);
         }
 
-        if (s.is(next_move.col, next_move.row) == State::AI_PIECE) {
-                new_ai_score += ::eval_xy(s, next_move.col, next_move.row, State::AI_PIECE);
+        if (s.is(next_move.x, next_move.y) == State::AI_PIECE) {
+                new_ai_score += ::eval_xy(s, next_move.x, next_move.y, State::AI_PIECE);
                 n_ai ++;
         } else {
-                new_oppo_score += ::eval_xy(s, next_move.col, next_move.row, State::HUMAN_PIECE);
+                new_oppo_score += ::eval_xy(s, next_move.x, next_move.y, State::HUMAN_PIECE);
                 n_oppo ++;
         }
 
@@ -211,5 +203,5 @@ static float incremental_eval(const State& k, const Move& next_move)
 float HeuristicChessDegree::evaluate(const State& k, const Move& next_move) const
 {
         return ::incremental_eval(k, next_move);
-        //return ::full_board_eval(k, next_move, who);
+        //return ::full_board_eval(k, next_move);
 }

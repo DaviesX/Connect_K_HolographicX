@@ -4,24 +4,31 @@
 
 Move::Move()
 {
-    row = 0;
-    col = 0;
+        y = 0;
+        x = 0;
 }
 
-Move::Move(unsigned col, unsigned row)
+Move::Move(unsigned x, unsigned y)
 {
-    this->row = row;
-    this->col = col;
+        this->y = x;
+        this->x = y;
 }
 
 void Move::set(unsigned x, unsigned y)
 {
-        col = x;
-        row = y;
+        x = x;
+        y = y;
+}
+
+const Move& Move::operator=(const Move& rhs)
+{
+        y = rhs.y;
+        x = rhs.x;
+        return *this;
 }
 
 std::ostream& operator<<(std::ostream& os, const Move& move)
 {
-        os << "Move = [" << move.col << "," << move.row << "]";
+        os << "Move = [" << move.x << "," << move.y << "]";
         return os;
 }

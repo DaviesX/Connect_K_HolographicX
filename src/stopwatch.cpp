@@ -26,5 +26,5 @@ float StopWatch::check_point()
         m_dt = elapsed/m_total;
         m_last = incum;
         float used = (incum - m_begin)/(float) CLOCKS_PER_SEC*1000;
-        return (m_total - used)/(float) m_total;
+        return 1.0f - used/(float) m_total;
 }
