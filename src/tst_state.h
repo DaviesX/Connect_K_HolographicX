@@ -2,7 +2,7 @@
 #define TST_STATE_H
 
 #include <iostream>
-#include <state.h>
+#include "state.h"
 
 static inline State tst_state_create_sample()
 {

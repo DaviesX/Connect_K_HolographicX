@@ -10,7 +10,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 
-INCLUDEPATH += src
+#INCLUDEPATH += src
 
 SOURCES += \
     src/iheuristic.cpp \

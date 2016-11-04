@@ -2,8 +2,8 @@
 #define TST_HEUR_COST_BENEFIT_H
 
 #include <iostream>
-#include <tst_state.h>
-#include <heurcostbenefit.h>
+#include "tst_state.h"
+#include "heurcostbenefit.h"
 
 static inline int tst_heurcostbenefit()
 {
@@ -19,7 +19,7 @@ static inline int tst_heurcostbenefit()
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) == State::NO_PIECE) {
-                                std::cout << h.evaluate(s, Move(x, y), State::AI_PIECE) << "\t";
+                                std::cout << h.evaluate(s, Move(x, y)) << "\t";
                         } else {
                                 std::cout << "NOMAN" << "\t";
                         }

@@ -2,8 +2,8 @@
 #define TST_HEURSUCCESSLINK_H
 
 #include <iostream>
-#include <tst_state.h>
-#include <heurchessdeg.h>
+#include "tst_state.h"
+#include "heurchessdeg.h"
 
 
 inline static int tst_heurchessdeg()
@@ -19,7 +19,7 @@ inline static int tst_heurchessdeg()
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         if (s.is(x, y) == State::NO_PIECE) {
-                                std::cout << h.evaluate(s, Move(x, y), State::AI_PIECE) << "\t";
+                                std::cout << h.evaluate(s, Move(x, y)) << "\t";
                         } else {
                                 std::cout << "-INFINITY" << "\t";
                         }

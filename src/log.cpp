@@ -1,6 +1,6 @@
 #include <fstream>
 #include <ostream>
-#include <log.h>
+#include "log.h"
 
 
 class Log

@@ -2,14 +2,14 @@
 #include <iostream>
 #include <ostream>
 #include <float.h>
-#include <state.h>
-#include <move.h>
 #include <cmath>
 #include <ctime>
-#include <strategydfs.h>
-#include <iheuristic.h>
-#include <heurchessdeg.h>
-#include <heurcostbenefit.h>
+#include "state.h"
+#include "move.h"
+#include "strategydfs.h"
+#include "iheuristic.h"
+#include "heurchessdeg.h"
+#include "heurcostbenefit.h"
 
 
 StrategyDFS::StrategyDFS()
@@ -34,11 +34,11 @@ float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta
                 return INFINITY;
 
         if (depth >= limit) {
-                return m_heur->evaluate(s, move, State::AI_PIECE);
+                return m_heur->evaluate(s, move);
         }
 
         std::vector<AvailableAction> actions;
-        build_actions_fast(s, depth, State::HUMAN_PIECE, actions);
+        build_actions_fast(s, depth, actions);
 
         float score = beta;
         //float score = FLT_MAX;
@@ -63,11 +63,11 @@ float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta
                 return -INFINITY;
 
         if (depth >= limit) {
-                return m_heur->evaluate(s, move, State::HUMAN_PIECE);
+                return m_heur->evaluate(s, move);
         }
 
         std::vector<AvailableAction> actions;
-        build_actions_fast(s, depth, State::AI_PIECE, actions);
+        build_actions_fast(s, depth, actions);
 
         float score = alpha;
         // float score = -FLT_MAX;
@@ -86,14 +86,14 @@ float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta
         return score;
 }
 
-void StrategyDFS::build_actions_fast(State& s, unsigned depth, int who, std::vector<AvailableAction>& actions) const
+void StrategyDFS::build_actions_fast(State& s, unsigned depth, std::vector<AvailableAction>& actions) const
 {
         if (depth <= 3) {
                 for (unsigned y = 0; y < s.num_rows; y ++) {
                         for (unsigned x = 0; x < s.num_cols; x ++) {
                                 if (s.is(x, y) != State::NO_PIECE)
                                         continue;
-                                float score = m_heur->evaluate(s,Move(x, y), who);
+                                float score = m_heur->evaluate(s,Move(x, y));
                                 actions.push_back(AvailableAction(x, y, score));
                         }
                 }
@@ -117,7 +117,7 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move) const
         float score = -INFINITY;
 
         std::vector<AvailableAction> actions;
-        build_actions_fast(s, 0, State::AI_PIECE, actions);
+        build_actions_fast(s, 0, actions);
 
         for (unsigned i = 0; i < actions.size(); i ++) {
                 AvailableAction action = actions[i];

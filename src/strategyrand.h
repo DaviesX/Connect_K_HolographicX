@@ -1,7 +1,7 @@
 #ifndef STRATEGYRAND_H
 #define STRATEGYRAND_H
 
-#include <istrategy.h>
+#include "istrategy.h"
 
 
 class StrategyRandom: public IStrategy

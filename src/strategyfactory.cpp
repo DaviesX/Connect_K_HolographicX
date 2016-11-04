@@ -1,7 +1,7 @@
-#include <state.h>
-#include <strategyrand.h>
-#include <strategydfs.h>
-#include <strategyfactory.h>
+#include "state.h"
+#include "strategyrand.h"
+#include "strategydfs.h"
+#include "strategyfactory.h"
 
 
 IStrategy* StrategyFactory::create(StrategyType type) const

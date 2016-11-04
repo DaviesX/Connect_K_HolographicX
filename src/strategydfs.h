@@ -1,8 +1,8 @@
 #ifndef STRATEGYDFS
 #define STRATEGYDFS
 
-#include <iheuristic.h>
-#include <istrategy.h>
+#include "iheuristic.h"
+#include "istrategy.h"
 
 
 class StrategyDFS: public IStrategy
@@ -41,7 +41,7 @@ private:
         float           minimizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const;
         float           maximizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const;
         float           abmin_max_move(State& s, unsigned limit, Move& move) const;
-        void            build_actions_fast(State& s, unsigned depth, int who, std::vector<AvailableAction>& actions) const;
+        void            build_actions_fast(State& s, unsigned depth, std::vector<AvailableAction>& actions) const;
 
         IHeuristic*     m_heur;
 };

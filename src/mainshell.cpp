@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
-#include <state.h>
-#include <move.h>
-#include <istrategy.h>
-#include <strategyfactory.h>
+#include "state.h"
+#include "move.h"
+#include "istrategy.h"
+#include "strategyfactory.h"
 
 
 State obtain_current_state()
@@ -84,10 +84,10 @@ void return_move(const Move& move)
 }
 
 // Unit tests
-#include <tst_state.h>
-#include <tst_heurcostbenefit.h>
-#include <tst_heurchessdeg.h>
-#include <tst_strategydfs.h>
+#include "tst_state.h"
+#include "tst_heurcostbenefit.h"
+#include "tst_heurchessdeg.h"
+#include "tst_strategydfs.h"
 
 int main()
 {

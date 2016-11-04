@@ -3,10 +3,10 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <state.h>
-#include <istrategy.h>
-#include <strategydfs.h>
-#include <tst_state.h>
+#include "state.h"
+#include "istrategy.h"
+#include "strategydfs.h"
+#include "tst_state.h"
 
 
 static int tst_strategydfs()

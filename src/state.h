@@ -1,9 +1,9 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include <move.h>
 #include <ostream>
 #include <vector>
+#include "move.h"
 
 typedef bool (*scan_eval_t) (const char* val, int x, int y, unsigned dist, void* data);
 

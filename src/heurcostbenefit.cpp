@@ -1,6 +1,6 @@
-#include <move.h>
-#include <state.h>
-#include <heurcostbenefit.h>
+#include "move.h"
+#include "state.h"
+#include "heurcostbenefit.h"
 
 HeuristicCostBenefit::HeuristicCostBenefit()
 {
@@ -97,7 +97,7 @@ float HeuristicCostBenefit::cost(const State& s, const Move& next_move, int who)
         return benefit(s, next_move, who, 1);
 }
 
-float HeuristicCostBenefit::evaluate(const State& s, const Move& next_move, int who) const
+float HeuristicCostBenefit::evaluate(const State& s, const Move& next_move) const
 {
         float cost = this->cost(s, next_move, opponent_of(State::AI_PIECE));
         float benefit = this->benefit(s, next_move, State::AI_PIECE, 1);

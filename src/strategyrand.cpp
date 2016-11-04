@@ -1,7 +1,7 @@
 #include <cstdlib>
-#include <move.h>
-#include <state.h>
-#include <strategyrand.h>
+#include "move.h"
+#include "state.h"
+#include "strategyrand.h"
 
 
 StrategyRandom::StrategyRandom()

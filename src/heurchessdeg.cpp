@@ -2,8 +2,8 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <state.h>
-#include <heurchessdeg.h>
+#include "state.h"
+#include "heurchessdeg.h"
 
 typedef std::pair<unsigned, unsigned> chess_pos_t;
 
@@ -170,7 +170,7 @@ static float full_board_eval(const State& k, const Move& next_move, int who)
         return p0 - p1;
 }
 
-static float incremental_eval(const State& k, const Move& next_move, const int who)
+static float incremental_eval(const State& k, const Move& next_move)
 {
         // Faking a const operation.
         State& s = const_cast<State&>(k);
@@ -181,7 +181,6 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
         int n_ai = affected_ai.size();
         int n_oppo = affected_oppo.size();
 
-        s.set_move(next_move.col, next_move.row, who);
         float new_ai_score = 0;
         for (unsigned i = 0; i < affected_ai.size(); i ++) {
                 new_ai_score += ::eval_xy(s, affected_ai[i].first, affected_ai[i].second, State::AI_PIECE);
@@ -191,14 +190,13 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
                 new_oppo_score += ::eval_xy(s, affected_oppo[i].first, affected_oppo[i].second, State::HUMAN_PIECE);
         }
 
-        if (who == State::AI_PIECE) {
+        if (s.is(next_move.col, next_move.row) == State::AI_PIECE) {
                 new_ai_score += ::eval_xy(s, next_move.col, next_move.row, State::AI_PIECE);
                 n_ai ++;
         } else {
                 new_oppo_score += ::eval_xy(s, next_move.col, next_move.row, State::HUMAN_PIECE);
                 n_oppo ++;
         }
-        s.set_move(next_move.col, next_move.row, State::NO_PIECE);
 
         n_ai = std::max(1, n_ai);
         n_oppo = std::max(1, n_oppo);
@@ -210,8 +208,8 @@ static float incremental_eval(const State& k, const Move& next_move, const int w
 }
 
 // Public API.
-float HeuristicChessDegree::evaluate(const State& k, const Move& next_move, int who) const
+float HeuristicChessDegree::evaluate(const State& k, const Move& next_move) const
 {
-        return ::incremental_eval(k, next_move, who);
+        return ::incremental_eval(k, next_move);
         //return ::full_board_eval(k, next_move, who);
 }
