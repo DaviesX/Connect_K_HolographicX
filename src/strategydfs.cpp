@@ -98,7 +98,7 @@ void StrategyDFS::build_actions_fast(State& s, unsigned depth, std::vector<Avail
                         for (unsigned x = 0; x < s.num_cols; x ++) {
                                 if (s.is(x, y) != State::NO_PIECE)
                                         continue;
-                                float score = m_heur->evaluate(s,Move(x, y));
+                                float score = m_heur->evaluate(s, Move(x, y));
                                 actions.push_back(AvailableAction(x, y, score));
                         }
                 }
@@ -157,8 +157,8 @@ void StrategyDFS::make_move(const State& s, Move& m) const
         watch.begin(10000);
 
         Move curr;
-        unsigned d = 5;
-        while (watch.check_point() > 0.05) {
+        unsigned d = 4;
+        while (watch.check_point() > 0.03) {
                 float score = abmin_max_move((State&) s, d, curr, watch);
                 if (score != NAN)
                         m = curr;

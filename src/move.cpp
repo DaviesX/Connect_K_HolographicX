@@ -10,22 +10,22 @@ Move::Move()
 
 Move::Move(unsigned x, unsigned y)
 {
-        this->y = x;
-        this->x = y;
+        this->y = y;
+        this->x = x;
 }
 
 void Move::set(unsigned x, unsigned y)
 {
-        x = x;
-        y = y;
+        this->x = x;
+        this->y = y;
 }
 
-const Move& Move::operator=(const Move& rhs)
-{
-        y = rhs.y;
-        x = rhs.x;
-        return *this;
-}
+//Move& Move::operator=(const Move& rhs)
+//{
+//        y = rhs.y;
+//        x = rhs.x;
+//        return *this;
+//}
 
 std::ostream& operator<<(std::ostream& os, const Move& move)
 {

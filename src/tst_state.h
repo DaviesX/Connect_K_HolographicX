@@ -34,8 +34,8 @@ static inline State tst_state_create_sample()
 
 static inline State tst_state_create_sample2()
 {
-        State s(7, 7, true, Move(4, 3), 5, 5000);
-        s.set_move(3, 3, State::HUMAN_PIECE);
+        State s(9, 7, true, Move(4, 2), 5, 5000);
+        s.set_move(4, 2, State::HUMAN_PIECE);
         return s;
 }
 

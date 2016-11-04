@@ -13,7 +13,7 @@ public:
 
         void set(unsigned x, unsigned y);
 
-        const Move& operator=(const Move& rhs);
+        //Move& operator=(const Move& rhs);
 };
 
 std::ostream& operator<<(std::ostream& os, const Move& move);
