@@ -20,12 +20,17 @@ void Move::set(unsigned x, unsigned y)
         this->y = y;
 }
 
-//Move& Move::operator=(const Move& rhs)
-//{
-//        y = rhs.y;
-//        x = rhs.x;
-//        return *this;
-//}
+Move& Move::operator=(const Move& rhs)
+{
+        y = rhs.y;
+        x = rhs.x;
+        return *this;
+}
+
+bool Move::operator== (const Move& rhs)
+{
+        return x == rhs.x && y == rhs.y;
+}
 
 std::ostream& operator<<(std::ostream& os, const Move& move)
 {

@@ -42,7 +42,7 @@ private:
         float           minimizer(State& s, float alpha, float beta, unsigned depth, const unsigned& limit) const;
         float           maximizer(State& s, float alpha, float beta, unsigned depth, const unsigned& limit) const;
         float           abmin_max_move(State& s, unsigned limit, Move& move, StopWatch& watch) const;
-        void            build_actions_fast(State& s, unsigned depth, std::vector<AvailableAction>& actions) const;
+        void            build_actions_fast(State& s, unsigned depth, unsigned limit, std::vector<AvailableAction>& actions) const;
 
         IHeuristic*     m_heur;
 };

@@ -13,7 +13,7 @@ public:
         void    try_move(const State& s, const Move& m) override;
         void    untry_move() override;
         float   evaluate(const State& s, const Move& next_move) const override;
-        
+
         // Link statistics.
         struct LinkStat
         {
@@ -61,7 +61,7 @@ private:
         unsigned                m_exp_w = 0;
         unsigned                m_exp_h = 0;
 
-        std::vector<float>      m_stack;
+        std::vector<Move>       m_stack;
         float                   m_path_score = 0;
 };
 

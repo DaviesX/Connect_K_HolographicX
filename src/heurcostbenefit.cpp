@@ -136,13 +136,13 @@ float HeuristicCostBenefit::cost(const State& s, const Move& next_move, int who)
 
 void HeuristicCostBenefit::try_move(const State& s, const Move& m)
 {
-        m_stack.push_back(m_path_score);
-        m_path_score += evaluate_move(s, m);
+        m_stack.push_back(m);
+        //m_path_score += evaluate_move(s, m);
 }
 
 void HeuristicCostBenefit::untry_move()
 {
-        m_path_score = m_stack.back();
+        //m_path_score = m_stack.back();
         m_stack.pop_back();
 }
 
@@ -156,5 +156,8 @@ float HeuristicCostBenefit::evaluate_move(const State& s, const Move& move) cons
 
 float HeuristicCostBenefit::evaluate(const State& s, const Move& next_move) const
 {
-        return m_path_score;
+        float score = 0;
+        for (Move m: m_stack)
+                score += evaluate_move(s, m);
+        return score + evaluate_move(s, next_move);
 }

@@ -8,36 +8,91 @@
 #include "strategydfs.h"
 #include "tst_state.h"
 
+static bool is_expected(const StrategyDFS& strategy, const State& s,
+                        const std::vector<Move>& moves, Move& made)
+{
+        strategy.make_move(s, made);
+        for (Move expected: moves) {
+                if (made == expected)
+                        return true;
+        }
+        return false;
+}
 
 static int tst_strategydfs()
 {
+        std::vector<State> states;
+        std::vector<std::vector<Move>> expected;
 
-        // State s = ::tst_state_create_sample();
-        State s = ::tst_state_create_sample2();
-        // State s = ::tst_state_create_sample3();
-        // State s = ::tst_state_create_sample4();
-        // State s = ::tst_state_create_sample5();
-        // State s = ::tst_state_create_sample6();
-        // State s = ::tst_state_create_sample7();
-        // State s = ::tst_state_create_sample8();
-        // State s = ::tst_state_create_sample9();
+        states.push_back(::tst_state_create_sample());
+        std::vector<Move> m1;
+        m1.push_back(Move(3, 3));
+        expected.push_back(m1);
 
-        std::cout << "Preview state:" << std::endl;
-        std::cout << s << std::endl;
+        states.push_back(::tst_state_create_sample2());
+        std::vector<Move> m2;
+        m2.push_back(Move(3, 3));
+        m2.push_back(Move(4, 3));
+        m2.push_back(Move(5, 3));
+        expected.push_back(m2);
+
+        states.push_back(::tst_state_create_sample3());
+        std::vector<Move> m3;
+        m3.push_back(Move(7, 0));
+        expected.push_back(m3);
+
+        states.push_back(::tst_state_create_sample4());
+        std::vector<Move> m4;
+        m4.push_back(Move(2, 2));
+        m4.push_back(Move(6, 2));
+        expected.push_back(m4);
+
+        states.push_back(::tst_state_create_sample5());
+        std::vector<Move> m5;
+        m5.push_back(Move(0, 2));
+        expected.push_back(m5);
+
+        states.push_back(::tst_state_create_sample6());
+        std::vector<Move> m6;
+        m6.push_back(Move(2, 3));
+        expected.push_back(m6);
+
+        states.push_back(::tst_state_create_sample7());
+        std::vector<Move> m7;
+        m7.push_back(Move(5, 6));
+        expected.push_back(m7);
+
+        states.push_back(::tst_state_create_sample8());
+        std::vector<Move> m8;
+        m8.push_back(Move(1, 0));
+        m8.push_back(Move(5, 4));
+        expected.push_back(m8);
+
+        states.push_back(::tst_state_create_sample9());
+        std::vector<Move> m9;
+        m9.push_back(Move(3, 6));
+        expected.push_back(m9);
 
         StrategyDFS strategy;
         Move m;
-        strategy.load_state(s);
-
-        std::cout << "Analysis: " << std::endl;
-        // strategy.print_analysis(std::cout, s, 4, 7, 4);
-        strategy.print_analysis(std::cout, s, 5);
-
-        std::cout << "Making move: " << std::endl;
-        //strategy.make_move(s, m);
-
-        std::cout << "AI move: " << std::endl;
-        std::cout << m << std::endl;
+        for (unsigned i = 0; i < states.size(); i ++) {
+                if (is_expected(strategy, states[i], expected[i], m)) {
+                        std::cout << "Passed sample " << i + 1 << std::endl;
+                } else {
+                        std::cout << "Failing sample " << i + 1 << std::endl;
+                        std::cout << "Preview state:" << std::endl;
+                        std::cout << states[i] << std::endl;
+                        std::cout << "Analysis: " << std::endl;
+                        strategy.print_analysis(std::cout, states[i], 1);
+                        std::cout << "AI move: " << std::endl;
+                        std::cout << m << std::endl;
+                        std::cout << "But expecting: ";
+                        for (Move m: expected[i]) {
+                                std::cout << m << "\t";
+                        }
+                        std::cout << std::endl;
+                }
+        }
         return EXIT_SUCCESS;
 }
 
