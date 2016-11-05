@@ -29,24 +29,26 @@ void StrategyDFS::load_state(const State& s)
         m_heur->load_state(s);
 }
 
-float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const
+float StrategyDFS::minimizer(State& s, float alpha, float beta, unsigned depth, const unsigned& limit) const
 {
-        if (s.is_goal_for(move, State::AI_PIECE))
-                return INFINITY;
-
-        if (depth >= limit) {
-                return m_heur->evaluate(s, move);
-        }
-
         std::vector<AvailableAction> actions;
         build_actions_fast(s, depth, actions);
 
         float score = beta;
         //float score = FLT_MAX;
         for (AvailableAction action: actions) {
+                Move cur_move(action.x, action.y);
                 s.set_move(action.x, action.y, State::HUMAN_PIECE);
-                m_heur->try_move(s, Move(action.x, action.y));
-                float cur_score = maximizer(s, Move(action.x, action.y), alpha, score, depth + 1, limit);
+                m_heur->try_move(s, cur_move);
+                float cur_score;
+                {
+                        if (s.is_goal_for(cur_move, State::HUMAN_PIECE))
+                                cur_score = -INFINITY;
+                        else if (depth + 1 >= limit)
+                                cur_score = m_heur->evaluate(s, cur_move);
+                        else
+                                cur_score = maximizer(s, alpha, score, depth + 1, limit);
+                }
                 m_heur->untry_move();
                 s.set_move(action.x, action.y, State::NO_PIECE);
 
@@ -60,24 +62,26 @@ float StrategyDFS::minimizer(State& s, const Move& move, float alpha, float beta
         return score;
 }
 
-float StrategyDFS::maximizer(State& s, const Move& move, float alpha, float beta, unsigned depth, const unsigned& limit) const
+float StrategyDFS::maximizer(State& s, float alpha, float beta, unsigned depth, const unsigned& limit) const
 {
-        if (s.is_goal_for(move, State::HUMAN_PIECE))
-                return -INFINITY;
-
-        if (depth >= limit) {
-                return m_heur->evaluate(s, move);
-        }
-
         std::vector<AvailableAction> actions;
         build_actions_fast(s, depth, actions);
 
         float score = alpha;
         // float score = -FLT_MAX;
         for (AvailableAction action: actions) {
+                Move cur_move(action.x, action.y);
                 s.set_move(action.x, action.y, State::AI_PIECE);
-                m_heur->try_move(s, Move(action.x, action.y));
-                float cur_score = minimizer(s, Move(action.x, action.y), score, beta, depth + 1, limit);
+                m_heur->try_move(s, cur_move);
+                float cur_score;
+                {
+                        if (s.is_goal_for(cur_move, State::AI_PIECE))
+                                cur_score = INFINITY;
+                        else if (depth + 1 >= limit)
+                                cur_score = m_heur->evaluate(s, cur_move);
+                        else
+                                cur_score = minimizer(s, score, beta, depth + 1, limit);
+                }
                 m_heur->untry_move();
                 s.set_move(action.x, action.y, State::NO_PIECE);
 
@@ -140,7 +144,11 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, Move& move, StopWatc
         for (AvailableAction action: actions) {
                 s.set_move(action.x, action.y, State::AI_PIECE);
                 m_heur->try_move(s, Move(action.x, action.y));
-                float cur_score = minimizer(s, Move(action.x, action.y), -FLT_MAX, FLT_MAX, 1, limit);
+                float cur_score;
+                if (s.is_goal_for(Move(action.x, action.y), State::AI_PIECE))
+                        cur_score = INFINITY;
+                else
+                        cur_score = minimizer(s, -FLT_MAX, FLT_MAX, 1, limit);
                 m_heur->untry_move();
                 s.set_move(action.x, action.y, State::NO_PIECE);
 
@@ -164,12 +172,13 @@ void StrategyDFS::make_move(const State& s, Move& m) const
 
         Move curr;
         unsigned d = 1;
-        while (1) {
+        do {
                 float score = abmin_max_move(const_cast<State&>(s), d ++, curr, watch);
                 if (score == TIME_OUT_CODE)
                         break;
+                std::cout << "Accomplished depth " << d - 1 << ", selecting " << curr << std::endl;
                 m = curr;
-        }
+        } while (1);
 }
 
 
@@ -186,7 +195,7 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth) co
 
                         s.set_move(x, y, State::AI_PIECE);
                         m_heur->try_move(s, Move(x, y));
-                        float cur_score = minimizer(s, Move(x, y), -FLT_MAX, FLT_MAX, 1, depth);
+                        float cur_score = minimizer(s, -FLT_MAX, FLT_MAX, 1, depth);
                         m_heur->untry_move();
                         s.set_move(x, y, State::NO_PIECE);
 
@@ -207,7 +216,7 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth, un
 
         s.set_move(x, y, State::AI_PIECE);
         m_heur->try_move(s, Move(x, y));
-        float cur_score = minimizer(s, Move(x, y), -FLT_MAX, FLT_MAX, 1, depth);
+        float cur_score = minimizer(s, -FLT_MAX, FLT_MAX, 1, depth);
         m_heur->untry_move();
         s.set_move(x, y, State::NO_PIECE);
 

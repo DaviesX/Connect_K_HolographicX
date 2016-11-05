@@ -8,6 +8,92 @@
 typedef bool (*scan_eval_t) (const char* val, int x, int y, unsigned dist, void* data);
 
 
+// Helpers
+static unsigned inline move_xy(const char* board, const int w, const int h, const int k,
+                               int& x, int& y, const unsigned d,
+                               scan_eval_t eval, void* data)
+{
+        int counter = 0;
+
+        // Multiplex each scenarios,
+        // so we save the number of comparisons in the long run.
+        switch (d) {
+                case 0:         // 0 degree.
+                        counter = x;
+                        while (x < w && x - counter < k &&
+                               eval(&board[x + w*y], x, y, x - counter, data))
+                                x ++;
+                        counter = x - counter;
+                        break;
+                case 1:         // 45 degree.
+                        counter = x;
+                        while (x < w && y >= 0 && x - counter < k &&
+                               eval(&board[x + w*y], x, y, x - counter, data)) {
+                                x ++;
+                                y --;
+                        }
+                        counter = x - counter;
+                        break;
+                case 2:         // 90 degree.
+                        counter = y;
+                        while (y >= 0 && counter - y < k &&
+                               eval(&board[x + w*y], x, y, counter - y, data))
+                                y --;
+                        counter = counter - y;
+                        break;
+                case 3:         // 135 degree.
+                        counter = y;
+                        while (x >= 0 && y >= 0 && counter - y < k &&
+                               eval(&board[x + w*y], x, y, counter - y, data)) {
+                                x --;
+                                y --;
+                        }
+                        counter = counter - y;
+                        break;
+                case 4:         // 180 degree.
+                        counter = x;
+                        while (x >= 0 && counter - x < k &&
+                               eval(&board[x + w*y], x, y, counter - x, data))
+                                x --;
+                        counter = counter - x;
+                        break;
+                case 5:         // 225 degree.
+                        counter = x;
+                        while (x >= 0 && y < h && counter - x < k &&
+                               eval(&board[x + w*y], x, y, counter - x, data)) {
+                                x --;
+                                y ++;
+                        }
+                        counter = counter - x;
+                        break;
+                case 6:         // 270 degree.
+                        counter = y;
+                        while (y < h && y - counter < k &&
+                               eval(&board[x + w*y], x, y, y - counter, data))
+                                y ++;
+                        counter = y - counter;
+                        break;
+                case 7:         // 315 degree.
+                        counter = y;
+                        while (x < w && y < h && y - counter < k &&
+                               eval(&board[x + w*y], x, y, y - counter, data)) {
+                                x ++;
+                                y ++;
+                        }
+                        counter = y - counter;
+                        break;
+        }
+        return counter;
+}
+
+static unsigned inline scan_on(const char* board, const int w, const int h, const int k,
+                               int x, int y, const unsigned d,
+                               scan_eval_t eval, void* data)
+{
+        return ::move_xy(board, w, h, k, x, y, d, eval, data);
+}
+
+
 /*
  * <State> represents currect game state.
  */
@@ -66,8 +152,17 @@ public:
         bool                                    is_goal() const;
         bool                                    is_goal_for(const Move& m, int who) const;
         bool                                    is_goal_for(int who) const;
-        unsigned                                scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
-        unsigned                                move_xy(int& x, int& y, unsigned d, scan_eval_t eval, void* data) const;
+
+        inline unsigned scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const 
+        {
+                return ::scan_on(m_board, num_cols, num_rows, k, x, y, d, eval, data);
+        }
+
+        inline unsigned move_xy(int& x, int& y, unsigned d, scan_eval_t eval, void* data) const 
+        {
+                return ::move_xy(m_board, num_cols, num_rows, k, x, y, d, eval, data);
+        }
+
         bool                                    collides_edges(int x, int y, unsigned d, int dist) const;
         bool                                    collides_edges(int x, int y, unsigned d) const;
 
