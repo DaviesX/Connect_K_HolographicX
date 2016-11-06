@@ -101,20 +101,21 @@ class State
 {
         friend std::ostream& operator<<(std::ostream& os, const State& s);
 public:
-    //these represent the values for each piece type.
-    static const int AI_PIECE               = 1;
-    static const int HUMAN_PIECE            = -1;
-    static const int NO_PIECE               = 0;
+        //these represent the values for each piece type.
+        static const int AI_PIECE               = 1;
+        static const int HUMAN_PIECE            = -1;
+        static const int NO_PIECE               = 0;
 
 public:
-    const unsigned  num_rows;       // The total number of rows in the game state.
-    const unsigned  num_cols;       // The total number of columns in the game state.
+        const unsigned  num_rows;       // The total number of rows in the game state.
+        const unsigned  num_cols;       // The total number of columns in the game state.
+        unsigned        num_left;
 
-    const bool      gravity_on;     // This will be true if gravity is turned on. It will be false if gravity is turned off.
-    const Move      last_move;      // This is the move made last by your opponent. If your opponent has not made a move yet (you move first) then this move will hold the value (-1, -1) instead.
+        const bool      gravity_on;     // This will be true if gravity is turned on. It will be false if gravity is turned off.
+        const Move      last_move;      // This is the move made last by your opponent. If your opponent has not made a move yet (you move first) then this move will hold the value (-1, -1) instead.
 
-    const unsigned  deadline;       // This is how many milliseconds the AI has to make move.
-    const unsigned  k;              // k is the number of pieces a player must get in a row/column/diagonal to win the game. IE in connect 4, this variable would be 4
+        const unsigned  deadline;       // This is how many milliseconds the AI has to make move.
+        const unsigned  k;              // k is the number of pieces a player must get in a row/column/diagonal to win the game. IE in connect 4, this variable would be 4
 
         State(const unsigned num_cols,
               const unsigned num_rows,
@@ -123,7 +124,7 @@ public:
               const unsigned k,
               const unsigned deadline);
         State(const State& s);
-    ~State();
+        ~State();
 
         struct MiniNode
         {
@@ -146,34 +147,34 @@ public:
                 }
         };
 
-        int                                     is(unsigned x, unsigned y) const;
-        void                                    set_move(unsigned x, unsigned y, int who);
+        int             is(unsigned x, unsigned y) const;
+        void            set_move(unsigned x, unsigned y, int who);
 
-        bool                                    is_goal() const;
-        bool                                    is_goal_for(const Move& m, int who) const;
-        bool                                    is_goal_for(int who) const;
+        bool            is_goal() const;
+        bool            is_goal_for(const Move& m, int who) const;
+        bool            is_goal_for(int who) const;
 
-        inline unsigned scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const 
+        inline unsigned scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const
         {
                 return ::scan_on(m_board, num_cols, num_rows, k, x, y, d, eval, data);
         }
 
-        inline unsigned move_xy(int& x, int& y, unsigned d, scan_eval_t eval, void* data) const 
+        inline unsigned move_xy(int& x, int& y, unsigned d, scan_eval_t eval, void* data) const
         {
                 return ::move_xy(m_board, num_cols, num_rows, k, x, y, d, eval, data);
         }
 
-        bool                                    collides_edges(int x, int y, unsigned d, int dist) const;
-        bool                                    collides_edges(int x, int y, unsigned d) const;
+        bool           collides_edges(int x, int y, unsigned d, int dist) const;
+        bool           collides_edges(int x, int y, unsigned d) const;
 
-        float                                   current_score() const;
-        const std::vector<State::MiniNode>&     path() const;
+        float          current_score() const;
+        const std::vector<State::MiniNode>& path() const;
 
 
-        void                                    push_move(unsigned x, unsigned y, int who);
-        void                                    prev_move(Move& move) const;
-        void                                    pop_move();
-        void                                    reset_all_moves();
+        void           push_move(unsigned x, unsigned y, int who);
+        void           prev_move(Move& move) const;
+        void           pop_move();
+        void           reset_all_moves();
 private:
         int                             m_goal_for = State::NO_PIECE;   // Whose goal?
         char*                           m_board;                        // Gameboard
@@ -182,7 +183,7 @@ private:
 
 std::ostream&   operator<<(std::ostream& os, const State& s);
 
-#define opponent_of(__who)              ((__who) == State::AI_PIECE ? State::HUMAN_PIECE : State::AI_PIECE)
+#define opponent_of(__who)      ((__who) == State::AI_PIECE ? State::HUMAN_PIECE : State::AI_PIECE)
 
 
 #endif // STATE_H

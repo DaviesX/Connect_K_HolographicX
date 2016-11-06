@@ -8,10 +8,10 @@
 #include "strategydfs.h"
 #include "tst_state.h"
 
-static bool is_expected(const StrategyDFS& strategy, const State& s,
+static bool is_expected(const StrategyDFS& strategy, const State& s, unsigned d, unsigned t,
                         const std::vector<Move>& moves, Move& made)
 {
-        strategy.make_move(s, made);
+        strategy.make_move(s, d, t, made);
         for (Move expected: moves) {
                 if (made == expected)
                         return true;
@@ -73,17 +73,21 @@ static int tst_strategydfs()
         m9.push_back(Move(3, 6));
         expected.push_back(m9);
 
+        const unsigned t = 5000;
+        const unsigned d = 3;
+
         StrategyDFS strategy;
         Move m;
         for (unsigned i = 0; i < states.size(); i ++) {
-                if (is_expected(strategy, states[i], expected[i], m)) {
+                std::cout << "Preview state: " << i + 1 << std::endl;
+                std::cout << states[i] << std::endl;
+
+                if (is_expected(strategy, states[i], d, t, expected[i], m)) {
                         std::cout << "Passed sample " << i + 1 << std::endl;
                 } else {
                         std::cout << "Failing sample " << i + 1 << std::endl;
-                        std::cout << "Preview state:" << std::endl;
-                        std::cout << states[i] << std::endl;
                         std::cout << "Analysis: " << std::endl;
-                        strategy.print_analysis(std::cout, states[i], 1);
+                        strategy.print_analysis(std::cout, states[i], d);
                         std::cout << "AI move: " << std::endl;
                         std::cout << m << std::endl;
                         std::cout << "But expecting: ";

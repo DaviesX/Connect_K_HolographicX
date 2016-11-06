@@ -34,6 +34,7 @@ State::State(const unsigned num_cols,
              const unsigned deadline):
         num_rows(num_rows),
         num_cols(num_cols),
+        num_left(num_rows*num_cols),
         gravity_on(gravity_on),
         last_move(last_move),
         deadline(deadline),
@@ -47,6 +48,7 @@ State::State(const unsigned num_cols,
 State::State(const State& s):
         num_rows(s.num_rows),
         num_cols(s.num_cols),
+        num_left(num_rows*num_cols),
         gravity_on(s.gravity_on),
         last_move(s.last_move),
         deadline(s.deadline),
@@ -74,6 +76,7 @@ int State::is(unsigned x, unsigned y) const
 
 void State::set_move(unsigned x, unsigned y, int who)
 {
+        num_left -= (int) (m_board[x + y*num_cols] == NO_PIECE) - (int) (who == NO_PIECE);
         m_board[x + y*num_cols] = who;
 }
 

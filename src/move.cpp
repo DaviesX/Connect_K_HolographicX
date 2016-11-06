@@ -8,13 +8,13 @@ Move::Move()
         x = 0;
 }
 
-Move::Move(unsigned x, unsigned y)
+Move::Move(unsigned char x, unsigned char y)
 {
         this->y = y;
         this->x = x;
 }
 
-void Move::set(unsigned x, unsigned y)
+void Move::set(unsigned char x, unsigned char y)
 {
         this->x = x;
         this->y = y;
@@ -34,6 +34,6 @@ bool Move::operator== (const Move& rhs)
 
 std::ostream& operator<<(std::ostream& os, const Move& move)
 {
-        os << "Move = [" << move.x << "," << move.y << "]";
+        os << "Move = [" << (int) move.x << "," << (int) move.y << "]";
         return os;
 }

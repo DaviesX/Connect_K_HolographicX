@@ -8,7 +8,10 @@
 static inline int tst_heurcostbenefit()
 {
         // State s = tst_state_create_sample();
-        State s = tst_state_create_sample3();
+        State s = tst_state_create_sample2();
+
+        // Move = [4,1], Move = [0,2], Move = [1,4]
+        s.set_move(4, 1, State::AI_PIECE);
 
         std::cout << "Preview: " << std::endl;
         std::cout << s << std::endl;

@@ -1,8 +1,11 @@
 #ifndef STRATEGYDFS
 #define STRATEGYDFS
 
+#include <vector>
 #include "stopwatch.h"
 #include "iheuristic.h"
+#include "heurchessdeg.h"
+#include "heurcostbenefit.h"
 #include "istrategy.h"
 
 
@@ -13,7 +16,7 @@ public:
         ~StrategyDFS() override;
 
         void            load_state(const State& s) override;
-        void            make_move(const State& s, Move& m) const override;
+        void            make_move(const State& s, unsigned quality, unsigned time, Move& m) const override;
         void            print_analysis(std::ostream& os, const State& s, int depth) const;
         void            print_analysis(std::ostream& os, const State& k, int depth, unsigned x, unsigned y) const;
 private:
@@ -39,12 +42,16 @@ private:
                 float   score;
         };
 
-        float           minimizer(State& s, float alpha, float beta, unsigned depth, const unsigned& limit) const;
-        float           maximizer(State& s, float alpha, float beta, unsigned depth, const unsigned& limit) const;
-        float           abmin_max_move(State& s, unsigned limit, Move& move, StopWatch& watch) const;
+        float           minimizer(State& s, float alpha, float beta,
+                                  unsigned depth, const unsigned& limit, std::vector<Move>& path) const;
+        float           maximizer(State& s, float alpha, float beta,
+                                  unsigned depth, const unsigned& limit, std::vector<Move>& path) const;
+        float           abmin_max_move(State& s, unsigned limit,
+                                       std::vector<Move>& path, StopWatch& watch,
+                                       float* score_map) const;
         void            build_actions_fast(State& s, unsigned depth, unsigned limit, std::vector<AvailableAction>& actions) const;
 
-        IHeuristic*     m_heur;
+        HeuristicCostBenefit* m_heur;
 };
 
 

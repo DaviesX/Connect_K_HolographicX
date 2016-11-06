@@ -157,7 +157,15 @@ float HeuristicCostBenefit::evaluate_move(const State& s, const Move& move) cons
 float HeuristicCostBenefit::evaluate(const State& s, const Move& next_move) const
 {
         float score = 0;
-        for (Move m: m_stack)
-                score += evaluate_move(s, m);
-        return score + evaluate_move(s, next_move);
+        std::vector<Move>& sequence = const_cast<std::vector<Move>&>(m_stack);
+        sequence.push_back(next_move);
+        for (unsigned i = 0; i < sequence.size(); i ++) {
+                const Move& m = sequence[i];
+                if ((i & 1) == 0)
+                        score += evaluate_move(s, m);
+                else
+                        score -= evaluate_move(s, m);
+        }
+        sequence.pop_back();
+        return score;
 }
