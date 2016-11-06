@@ -96,8 +96,8 @@ float HeuristicCostBenefit::benefit(const State& s, const Move& next_move,
         for (unsigned d = 0; d < 4; d ++) {
                 int x = next_move.x;
                 int y = next_move.y;
-                s.move_xy(x, y, d, &::linkage, &ls);
-                if (ls.ins != 0) {
+                unsigned dist = s.move_xy(x, y, d, &::linkage, &ls);
+                if (ls.ins != 0 || dist == 1) {
                         // Where there is a match.
                         if ((s.collides_edges(x, y, d) ||
                              s.is(x, y) == opponent_of(who)))
@@ -109,8 +109,8 @@ float HeuristicCostBenefit::benefit(const State& s, const Move& next_move,
 
                 x = next_move.x;
                 y = next_move.y;
-                s.move_xy(x, y, (d + 4)%8, &::linkage, &ls2);
-                if (ls2.ins != 0) {
+                dist = s.move_xy(x, y, (d + 4)%8, &::linkage, &ls2);
+                if (ls2.ins != 0 || dist == 1) {
                         // Where there is a match.
                         if ((s.collides_edges(x, y, (d + 4)%8) ||
                              s.is(x, y) == opponent_of(who)))
@@ -120,7 +120,7 @@ float HeuristicCostBenefit::benefit(const State& s, const Move& next_move,
                         ls2.del = 0;
                 }
 
-                int exp = extra_moves + (int) (ls.ins + ls2.ins) - (int) (ls.del + ls2.del);
+                int exp = extra_moves + (int) (ls.ins + ls2.ins) - 3.0f/4.0f*((float) (ls.del + ls2.del));
                 if (prevention && exp >= (int) s.k)
                         ;
                 else if (exp >= 0)
@@ -146,25 +146,33 @@ void HeuristicCostBenefit::untry_move()
 
 float HeuristicCostBenefit::evaluate_move(const State& s, const Move& move) const
 {
-        float cost = this->benefit(s, move, opponent_of(State::AI_PIECE), 1, true);
+        float cost = this->benefit(s, move, opponent_of(State::AI_PIECE), 1, false);
         float benefit = this->benefit(s, move, State::AI_PIECE, 1, false);
         float score = cost + benefit;
         return score;
 }
 
+float HeuristicCostBenefit::coarse_eval(const State& s, const Move& next_move) const
+{
+        //return evaluate_move(s, next_move);
+        return evaluate(s, next_move);
+}
+
 float HeuristicCostBenefit::evaluate(const State& s, const Move& next_move) const
 {
-        float score = 0;
+        float s0 = 0;
+        float s1 = 0;
+
         std::vector<Move>& sequence = const_cast<std::vector<Move>&>(m_stack);
         sequence.push_back(next_move);
         for (unsigned i = 0; i < sequence.size(); i ++) {
                 const Move& m = sequence[i];
                 if ((i & 1) == 0) {
-                        score += evaluate_move(s, m);
+                        s0 += evaluate_move(s, m);
                 } else {
-                        score -= evaluate_move(s, m);
+                        s1 += evaluate_move(s, m);
                 }
         }
         sequence.pop_back();
-        return score;
+        return s0 - s1;
 }

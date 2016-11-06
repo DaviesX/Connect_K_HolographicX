@@ -12,6 +12,7 @@ public:
         void    load_state(const State& s) override;
         void    try_move(const State& s, const Move& m) override;
         void    untry_move() override;
+        float   coarse_eval(const State& s, const Move& next_move) const override;
         float   evaluate(const State& s, const Move& next_move) const override;
 
         // Link statistics.

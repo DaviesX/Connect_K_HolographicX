@@ -36,7 +36,7 @@ void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, s
                         for (unsigned x = 0; x < s.num_cols; x ++) {
                                 if (s.is(x, y) != State::NO_PIECE)
                                         continue;
-                                float score = m_heur->evaluate(s, Move(x, y));
+                                float score = m_heur->coarse_eval(s, Move(x, y));
                                 actions.push_back(AvailableAction(x, y, score));
                         }
                 }
@@ -103,6 +103,8 @@ float StrategyDFS::minimizer(State& s, float alpha, float beta,
                         else if (depth + 1 >= limit)
                                 cur_score = m_heur->evaluate(s, cur_move);
                         else {
+                                if (action.x == 2 && action.y == 5)
+                                        int a = 0;
                                 m_heur->try_move(s, cur_move);
                                 cur_score = maximizer(s, alpha, score, depth + 1, limit, sub_path, watch);
                                 m_heur->untry_move();
@@ -147,9 +149,11 @@ float StrategyDFS::maximizer(State& s, float alpha, float beta,
                 {
                         if (s.is_goal_for(cur_move, State::AI_PIECE))
                                 cur_score = INFINITY;
-                        else if (depth + 1 >= limit)
+                        else if (depth + 1 >= limit) {
+                                if (action.x == 2 && action.y == 4)
+                                        int a = 0;
                                 cur_score = m_heur->evaluate(s, cur_move);
-                        else {
+                        } else {
                                 m_heur->try_move(s, cur_move);
                                 cur_score = minimizer(s, score, beta, depth + 1, limit, sub_path, watch);
                                 m_heur->untry_move();
@@ -285,7 +289,7 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth, un
                 return;
         }
 
-        std::vector<Move> path;
+        std::vector<Move> path(depth);
         StopWatch watch;
         watch.begin(20000);
 
@@ -294,6 +298,8 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth, un
         float cur_score = minimizer(s, -FLT_MAX, FLT_MAX, 1, depth, path, watch);
         m_heur->untry_move();
         s.set_move(x, y, State::NO_PIECE);
+
+        path[0] = Move(x, y);
 
         ::print_path(os, path);
         os << std::endl;

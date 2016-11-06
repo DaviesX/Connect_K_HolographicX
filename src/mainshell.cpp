@@ -90,7 +90,7 @@ void return_move(const Move& move)
 
 int main()
 {
-#if 1
+#if 0
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
         do {
                 const State& state = ::obtain_current_state();
@@ -102,11 +102,14 @@ int main()
         delete strategy;
         return EXIT_SUCCESS;
 #else
+        clock_t begin = clock();
         // tst_heursuccesslink();
-        // tst_heurcostbenefit();
+        //tst_heurcostbenefit();
         tst_strategydfs();
         // tst_state();
         // tst_state2();
+        clock_t end = clock();
+        std::cout << "Time elapsed: " << (float) (end - begin)/CLOCKS_PER_SEC << std::endl;
 #endif
         return EXIT_SUCCESS;
 }
