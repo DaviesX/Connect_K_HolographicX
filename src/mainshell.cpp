@@ -79,7 +79,7 @@ void return_move(const Move& move)
         std::string made_move = "ReturningTheMoveMade";
         //outputs made_move then a space then the row then a space then the column
         //then a line break.
-        std::cout << made_move << " " << move.x << " " << move.y << std::endl;
+        std::cout << made_move << " " << (int) move.x << " " << (int) move.y << std::endl;
 }
 
 // Unit tests
@@ -90,13 +90,13 @@ void return_move(const Move& move)
 
 int main()
 {
-#if 0
+#if 1
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
         do {
                 const State& state = ::obtain_current_state();
                 Move m;
                 strategy->load_state(state);
-                strategy->make_move(state, m, 3, 10000);
+                strategy->make_move(state, 2, 5000, m);
                 ::return_move(m);
         } while (true);
         delete strategy;

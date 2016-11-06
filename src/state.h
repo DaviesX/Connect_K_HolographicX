@@ -102,9 +102,9 @@ class State
         friend std::ostream& operator<<(std::ostream& os, const State& s);
 public:
         //these represent the values for each piece type.
-        static const int AI_PIECE               = 1;
-        static const int HUMAN_PIECE            = -1;
-        static const int NO_PIECE               = 0;
+        static const char AI_PIECE               = 1;
+        static const char HUMAN_PIECE            = -1;
+        static const char NO_PIECE               = 0;
 
 public:
         const unsigned  num_rows;       // The total number of rows in the game state.
@@ -148,7 +148,7 @@ public:
         };
 
         int             is(unsigned x, unsigned y) const;
-        void            set_move(unsigned x, unsigned y, int who);
+        void            set_move(unsigned x, unsigned y, char who);
 
         bool            is_goal() const;
         bool            is_goal_for(const Move& m, int who) const;

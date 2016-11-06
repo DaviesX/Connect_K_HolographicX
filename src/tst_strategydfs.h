@@ -59,7 +59,7 @@ static int tst_strategydfs()
 
         states.push_back(::tst_state_create_sample7());
         std::vector<Move> m7;
-        m7.push_back(Move(5, 6));
+        m7.push_back(Move(5, 2));
         expected.push_back(m7);
 
         states.push_back(::tst_state_create_sample8());
@@ -75,6 +75,7 @@ static int tst_strategydfs()
 
         const unsigned t = 5000;
         const unsigned d = 3;
+        const bool escape = false;
 
         StrategyDFS strategy;
         Move m;
@@ -96,6 +97,9 @@ static int tst_strategydfs()
                         }
                         std::cout << std::endl;
                 }
+
+                if (escape)
+                        break;
         }
         return EXIT_SUCCESS;
 }

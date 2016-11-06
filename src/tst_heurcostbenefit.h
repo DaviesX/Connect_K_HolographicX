@@ -7,11 +7,10 @@
 
 static inline int tst_heurcostbenefit()
 {
-        // State s = tst_state_create_sample();
-        State s = tst_state_create_sample2();
+        State s = tst_state_create_sample7();
 
-        // Move = [4,1], Move = [0,2], Move = [1,4]
-        s.set_move(4, 1, State::AI_PIECE);
+        s.set_move(5, 2, State::AI_PIECE);
+        s.set_move(2, 5, State::HUMAN_PIECE);
 
         std::cout << "Preview: " << std::endl;
         std::cout << s << std::endl;
@@ -31,7 +30,8 @@ static inline int tst_heurcostbenefit()
         }
 #else
         std::cout << "Move value ";
-        std::cout << h.evaluate(s, Move(3, 3), State::AI_PIECE) << "\t";
+        std::cout << h.evaluate(s, Move(5, 2)) << "\t";
+        std::cout << h.evaluate(s, Move(2, 5)) << "\t";
 #endif
         return 0;
 }

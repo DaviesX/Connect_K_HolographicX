@@ -43,9 +43,11 @@ private:
         };
 
         float           minimizer(State& s, float alpha, float beta,
-                                  unsigned depth, const unsigned& limit, std::vector<Move>& path) const;
+                                  unsigned depth, const unsigned& limit,
+                                  std::vector<Move>& path, StopWatch& watch) const;
         float           maximizer(State& s, float alpha, float beta,
-                                  unsigned depth, const unsigned& limit, std::vector<Move>& path) const;
+                                  unsigned depth, const unsigned& limit,
+                                  std::vector<Move>& path, StopWatch& watch) const;
         float           abmin_max_move(State& s, unsigned limit,
                                        std::vector<Move>& path, StopWatch& watch,
                                        float* score_map) const;

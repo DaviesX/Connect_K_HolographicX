@@ -74,10 +74,11 @@ int State::is(unsigned x, unsigned y) const
         return m_board[x + y*num_cols];
 }
 
-void State::set_move(unsigned x, unsigned y, int who)
+void State::set_move(unsigned x, unsigned y, char who)
 {
-        num_left -= (int) (m_board[x + y*num_cols] == NO_PIECE) - (int) (who == NO_PIECE);
-        m_board[x + y*num_cols] = who;
+        char* at = &m_board[x + y*num_cols];
+        num_left -= (int) (*at == NO_PIECE) - (int) (who == NO_PIECE);
+        *at = who;
 }
 
 bool State::is_goal() const

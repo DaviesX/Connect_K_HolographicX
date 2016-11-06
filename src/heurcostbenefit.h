@@ -54,14 +54,14 @@ public:
 private:
         void    exponent(const State& s, const Move& move, Exp& exp) const;
         float   evaluate_move(const State& s, const Move& move) const;
-        float   cost(const State& s, const Move& next_move, int who) const;
-        float   benefit(const State& s, const Move& next_move, int who, int extra_moves) const;
+        float   benefit(const State& s, const Move& next_move, int who, int extra_moves, bool prevention) const;
 
         Exp*                    m_exp_map = nullptr;
         unsigned                m_exp_w = 0;
         unsigned                m_exp_h = 0;
 
         std::vector<Move>       m_stack;
+        //std::vector<float>      m_stack;
         float                   m_path_score = 0;
 };
 

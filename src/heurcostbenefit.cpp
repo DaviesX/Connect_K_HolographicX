@@ -87,7 +87,8 @@ void HeuristicCostBenefit::load_state(const State& s)
         }*/
 }
 
-float HeuristicCostBenefit::benefit(const State& s, const Move& next_move, int who, int extra_moves) const
+float HeuristicCostBenefit::benefit(const State& s, const Move& next_move,
+                                    int who, int extra_moves, bool prevention) const
 {
         LinkStat ls(who), ls2(who);
 
@@ -120,18 +121,15 @@ float HeuristicCostBenefit::benefit(const State& s, const Move& next_move, int w
                 }
 
                 int exp = extra_moves + (int) (ls.ins + ls2.ins) - (int) (ls.del + ls2.del);
-                if (exp >= 0)
+                if (prevention && exp >= (int) s.k)
+                        ;
+                else if (exp >= 0)
                         score += exp*(1 << exp);
 
                 ls.reset();
                 ls2.reset();
         }
         return score;
-}
-
-float HeuristicCostBenefit::cost(const State& s, const Move& next_move, int who) const
-{
-        return benefit(s, next_move, who, 1);
 }
 
 void HeuristicCostBenefit::try_move(const State& s, const Move& m)
@@ -148,8 +146,8 @@ void HeuristicCostBenefit::untry_move()
 
 float HeuristicCostBenefit::evaluate_move(const State& s, const Move& move) const
 {
-        float cost = this->cost(s, move, opponent_of(State::AI_PIECE));
-        float benefit = this->benefit(s, move, State::AI_PIECE, 1);
+        float cost = this->benefit(s, move, opponent_of(State::AI_PIECE), 1, true);
+        float benefit = this->benefit(s, move, State::AI_PIECE, 1, false);
         float score = cost + benefit;
         return score;
 }
@@ -161,10 +159,11 @@ float HeuristicCostBenefit::evaluate(const State& s, const Move& next_move) cons
         sequence.push_back(next_move);
         for (unsigned i = 0; i < sequence.size(); i ++) {
                 const Move& m = sequence[i];
-                if ((i & 1) == 0)
+                if ((i & 1) == 0) {
                         score += evaluate_move(s, m);
-                else
+                } else {
                         score -= evaluate_move(s, m);
+                }
         }
         sequence.pop_back();
         return score;
