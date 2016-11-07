@@ -1,3 +1,5 @@
+#include <float.h>
+#include <cmath>
 #include "move.h"
 #include "state.h"
 #include "heurcostbenefit.h"
@@ -120,10 +122,10 @@ float HeuristicCostBenefit::benefit(const State& s, const Move& next_move,
                         ls2.del = 0;
                 }
 
-                int exp = extra_moves + (int) (ls.ins + ls2.ins) - 3.0f/4.0f*((float) (ls.del + ls2.del));
-                if (prevention && exp >= (int) s.k)
-                        ;
-                else if (exp >= 0)
+                int exp = extra_moves + (int) (ls.ins + ls2.ins) - /*3.0f/4.0f**/((float) (ls.del + ls2.del));
+                if (exp == s.k - 1)
+                        return FLT_MAX;
+                if (exp >= 0)
                         score += exp*(1 << exp);
 
                 ls.reset();
@@ -144,10 +146,11 @@ void HeuristicCostBenefit::untry_move()
         m_stack.pop_back();
 }
 
-float HeuristicCostBenefit::evaluate_move(const State& s, const Move& move) const
+float HeuristicCostBenefit::evaluate_move(const State& s, const Move& move, int who) const
 {
-        float cost = this->benefit(s, move, opponent_of(State::AI_PIECE), 1, false);
-        float benefit = this->benefit(s, move, State::AI_PIECE, 1, false);
+        float cost = 0, benefit = 0;
+        //cost = this->benefit(s, move, opponent_of(who), 1, false);
+        benefit = this->benefit(s, move, who, 1, false);
         float score = cost + benefit;
         return score;
 }
@@ -163,16 +166,21 @@ float HeuristicCostBenefit::evaluate(const State& s, const Move& next_move) cons
         float s0 = 0;
         float s1 = 0;
 
+        float n0 = 1;
+        float n1 = 1;
+
         std::vector<Move>& sequence = const_cast<std::vector<Move>&>(m_stack);
         sequence.push_back(next_move);
         for (unsigned i = 0; i < sequence.size(); i ++) {
                 const Move& m = sequence[i];
                 if ((i & 1) == 0) {
-                        s0 += evaluate_move(s, m);
+                        s0 += evaluate_move(s, m, State::AI_PIECE);
+                        n0 ++;
                 } else {
-                        s1 += evaluate_move(s, m);
+                        s1 += evaluate_move(s, m, State::HUMAN_PIECE);
+                        n1 ++;
                 }
         }
         sequence.pop_back();
-        return s0 - s1;
+        return s0/n0 - s1/n1;
 }

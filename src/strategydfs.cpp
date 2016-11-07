@@ -103,8 +103,6 @@ float StrategyDFS::minimizer(State& s, float alpha, float beta,
                         else if (depth + 1 >= limit)
                                 cur_score = m_heur->evaluate(s, cur_move);
                         else {
-                                if (action.x == 2 && action.y == 5)
-                                        int a = 0;
                                 m_heur->try_move(s, cur_move);
                                 cur_score = maximizer(s, alpha, score, depth + 1, limit, sub_path, watch);
                                 m_heur->untry_move();
@@ -150,8 +148,6 @@ float StrategyDFS::maximizer(State& s, float alpha, float beta,
                         if (s.is_goal_for(cur_move, State::AI_PIECE))
                                 cur_score = INFINITY;
                         else if (depth + 1 >= limit) {
-                                if (action.x == 2 && action.y == 4)
-                                        int a = 0;
                                 cur_score = m_heur->evaluate(s, cur_move);
                         } else {
                                 m_heur->try_move(s, cur_move);

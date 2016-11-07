@@ -54,7 +54,7 @@ public:
         };
 private:
         void    exponent(const State& s, const Move& move, Exp& exp) const;
-        float   evaluate_move(const State& s, const Move& move) const;
+        float   evaluate_move(const State& s, const Move& move, int who) const;
         float   benefit(const State& s, const Move& next_move, int who, int extra_moves, bool prevention) const;
 
         Exp*                    m_exp_map = nullptr;

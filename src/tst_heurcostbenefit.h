@@ -7,18 +7,18 @@
 
 static inline int tst_heurcostbenefit()
 {
-        State s = tst_state_create_sample7();
+        State s = tst_state_create_sample10();
 
-        s.set_move(5, 2, State::AI_PIECE);
-        s.set_move(2, 5, State::HUMAN_PIECE);
+        s.set_move(4, 1, State::AI_PIECE);
+        s.set_move(1, 4, State::HUMAN_PIECE);
 
         std::cout << "Preview: " << std::endl;
         std::cout << s << std::endl;
 
         HeuristicCostBenefit h;
         h.load_state(s);
-        h.try_move(s, Move(5, 2));
-        h.try_move(s, Move(2, 5));
+        h.try_move(s, Move(4, 1));
+        h.try_move(s, Move(1, 4));
 #if 1
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
@@ -34,7 +34,7 @@ static inline int tst_heurcostbenefit()
         }
 #else
         std::cout << "Move value ";
-        s.set_move(0, 7, State::AI_PIECE);
+        s.set_move(4, 1, State::AI_PIECE);
         std::cout << h.evaluate(s, Move(0, 7)) << "\t";
 #endif
         return 0;
