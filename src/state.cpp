@@ -48,7 +48,7 @@ State::State(const unsigned num_cols,
 State::State(const State& s):
         num_rows(s.num_rows),
         num_cols(s.num_cols),
-        num_left(num_rows*num_cols),
+        num_left(s.num_left),
         gravity_on(s.gravity_on),
         last_move(s.last_move),
         deadline(s.deadline),

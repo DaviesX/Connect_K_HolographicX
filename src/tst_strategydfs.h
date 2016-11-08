@@ -78,16 +78,21 @@ static int tst_strategydfs()
         m10.push_back(Move(4, 1));
         expected.push_back(m10);
 
+        states.push_back(::tst_state_create_sample11());
+        std::vector<Move> m11;
+        m11.push_back(Move(0, 0));
+        expected.push_back(m11);
+
         const unsigned t = 5000;
-        const unsigned d = 2;
-        const bool escape = false;
+        const unsigned d = 3;
+        const bool escape = true;
 
         StrategyDFS strategy;
 
         //strategy.print_analysis(std::cout, states[6], 3, 5, 2);
 #if 1
         Move m;
-        for (unsigned i = 0; i < states.size(); i ++) {
+        for (unsigned i = 11; i < states.size(); i ++) {
                 std::cout << "Preview state: " << i + 1 << std::endl;
                 std::cout << states[i] << std::endl;
 

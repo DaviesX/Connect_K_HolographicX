@@ -242,6 +242,7 @@ void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Mov
                 std::cout << "Accomplished depth " << d - 1 << ", selecting ";
                 ::print_path(std::cout, path);
                 std::cout << std::endl;
+                std::cout << "Current score: " << score << std::endl;
                 m = path[0];
         } while (d < max);
 }

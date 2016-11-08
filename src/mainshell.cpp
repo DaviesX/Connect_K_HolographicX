@@ -96,7 +96,7 @@ int main()
                 const State& state = ::obtain_current_state();
                 Move m;
                 strategy->load_state(state);
-                strategy->make_move(state, 2, 5000, m);
+                strategy->make_move(state, 2, 10000, m);
                 ::return_move(m);
         } while (true);
         delete strategy;
