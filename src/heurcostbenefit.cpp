@@ -123,8 +123,6 @@ float HeuristicCostBenefit::benefit(const State& s, const Move& next_move,
                 }
 
                 int exp = extra_moves + (int) (ls.ins + ls2.ins) - /*3.0f/4.0f**/((float) (ls.del + ls2.del));
-                /*if (exp == s.k - 1)
-                        return FLT_MAX/2;*/
                 if (exp >= 0)
                         score += exp*exp*(1 << exp);
 
@@ -150,7 +148,10 @@ float HeuristicCostBenefit::evaluate_move(const State& s, const Move& move, int 
 {
         float cost = 0, benefit = 0;
         //cost = this->benefit(s, move, opponent_of(who), 1, false);
-        benefit = this->benefit(s, move, who, 1, false);
+        if (who == State::HUMAN_PIECE)
+                benefit = this->benefit(s, move, who, 2, false);
+        else
+                benefit = this->benefit(s, move, who, 1, false);
         float score = cost + benefit;
         return score;
 }
