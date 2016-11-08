@@ -15,7 +15,7 @@ static inline int tst_heurcostbenefit()
         std::cout << "Preview: " << std::endl;
         std::cout << s << std::endl;
 
-        HeuristicCostBenefit h;
+        HeuristicCostBenefit h(true);
         h.load_state(s);
         h.try_move(s, Move(4, 1));
         h.try_move(s, Move(1, 4));

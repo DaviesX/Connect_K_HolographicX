@@ -16,7 +16,7 @@
 StrategyDFS::StrategyDFS()
 {
         //m_heur = new HeuristicChessDegree();
-        m_heur = new HeuristicCostBenefit();
+        m_heur = new HeuristicCostBenefit(true);
 }
 
 StrategyDFS::~StrategyDFS()

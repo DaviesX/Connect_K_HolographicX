@@ -24,9 +24,6 @@ struct EvalFRData
 
 static bool eval_fr(const char* val, int x, int y, unsigned dist, void* data)
 {
-        if (dist == 0)
-                return true;
-
         EvalFRData* fr = (EvalFRData*) data;
 
         if (*val == State::NO_PIECE) {
@@ -113,9 +110,6 @@ struct EvalAffectedData
 
 static bool eval_affected(const char* val, int x, int y, unsigned dist, void* data)
 {
-        if (dist == 0)
-                return true;
-
         EvalAffectedData* af_data = (EvalAffectedData*) data;
 
         switch (*val) {

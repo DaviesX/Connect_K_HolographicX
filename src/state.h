@@ -20,66 +20,70 @@ static unsigned inline move_xy(const char* board, const int w, const int h, cons
         switch (d) {
                 case 0:         // 0 degree.
                         counter = x;
-                        while (x < w && x - counter < k &&
-                               eval(&board[x + w*y], x, y, x - counter, data))
+                        do {
                                 x ++;
+                        } while (x < w && x - counter < k &&
+                                 eval(&board[x + w*y], x, y, x - counter, data));
                         counter = x - counter;
                         break;
                 case 1:         // 45 degree.
                         counter = x;
-                        while (x < w && y >= 0 && x - counter < k &&
-                               eval(&board[x + w*y], x, y, x - counter, data)) {
+                        do {
                                 x ++;
                                 y --;
-                        }
+                        } while (x < w && y >= 0 && x - counter < k &&
+                                 eval(&board[x + w*y], x, y, x - counter, data));
                         counter = x - counter;
                         break;
                 case 2:         // 90 degree.
                         counter = y;
-                        while (y >= 0 && counter - y < k &&
-                               eval(&board[x + w*y], x, y, counter - y, data))
+                        do {
                                 y --;
+                        } while (y >= 0 && counter - y < k &&
+                                 eval(&board[x + w*y], x, y, counter - y, data));
                         counter = counter - y;
                         break;
                 case 3:         // 135 degree.
                         counter = y;
-                        while (x >= 0 && y >= 0 && counter - y < k &&
-                               eval(&board[x + w*y], x, y, counter - y, data)) {
+                        do {
                                 x --;
                                 y --;
-                        }
+                        } while (x >= 0 && y >= 0 && counter - y < k &&
+                                 eval(&board[x + w*y], x, y, counter - y, data));
                         counter = counter - y;
                         break;
                 case 4:         // 180 degree.
                         counter = x;
-                        while (x >= 0 && counter - x < k &&
-                               eval(&board[x + w*y], x, y, counter - x, data))
+                        do {
                                 x --;
+                        } while (x >= 0 && counter - x < k &&
+                                 eval(&board[x + w*y], x, y, counter - x, data));
                         counter = counter - x;
                         break;
                 case 5:         // 225 degree.
                         counter = x;
-                        while (x >= 0 && y < h && counter - x < k &&
-                               eval(&board[x + w*y], x, y, counter - x, data)) {
+                        do {
                                 x --;
                                 y ++;
-                        }
+                        } while (x >= 0 && y < h && counter - x < k &&
+                                 eval(&board[x + w*y], x, y, counter - x, data));
                         counter = counter - x;
                         break;
                 case 6:         // 270 degree.
                         counter = y;
-                        while (y < h && y - counter < k &&
-                               eval(&board[x + w*y], x, y, y - counter, data))
+                        do {
                                 y ++;
+                        } while (y < h && y - counter < k &&
+                                 eval(&board[x + w*y], x, y, y - counter, data));
                         counter = y - counter;
                         break;
                 case 7:         // 315 degree.
                         counter = y;
-                        while (x < w && y < h && y - counter < k &&
-                               eval(&board[x + w*y], x, y, y - counter, data)) {
+                        do {
                                 x ++;
                                 y ++;
-                        }
+                        } while (x < w && y < h && y - counter < k &&
+                                 eval(&board[x + w*y], x, y, y - counter, data));
                         counter = y - counter;
                         break;
         }

@@ -85,14 +85,14 @@ static int tst_strategydfs()
 
         const unsigned t = 5000;
         const unsigned d = 3;
-        const bool escape = true;
+        const bool escape = false;
 
         StrategyDFS strategy;
 
         //strategy.print_analysis(std::cout, states[6], 3, 5, 2);
 #if 1
         Move m;
-        for (unsigned i = 11; i < states.size(); i ++) {
+        for (unsigned i = 0; i < states.size(); i ++) {
                 std::cout << "Preview state: " << i + 1 << std::endl;
                 std::cout << states[i] << std::endl;
 
