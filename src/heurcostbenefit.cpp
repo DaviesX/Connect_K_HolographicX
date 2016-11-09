@@ -48,45 +48,38 @@ void HeuristicCostBenefit::load_state(const State& s)
         }
 }
 
+void HeuristicCostBenefit::acc_link_stat(const State& s, const Move& next_move,
+                                         int who, unsigned d, LinkStat& ls) const
+{
+        int del = ls.del;
+        int x = next_move.x;
+        int y = next_move.y;
+        unsigned dist = s.move_xy(x, y, d, &::linkage, &ls);
+        if (ls.ins != 0 || dist == 1) {
+                // Where there is a match.
+                if ((s.collides_edges(x, y, d) ||
+                     s.is(x, y) == opponent_of(who)))
+                        // Where the link is blocked.
+                        ls.del ++;
+        } else
+                ls.del = del;
+}
+
 float HeuristicCostBenefit::benefit(const State& s, const Move& next_move,
                                     int who, int extra_moves) const
 {
-        LinkStat ls(who), ls2(who);
+        LinkStat ls(who);
 
         float score = 0.0f;
         for (unsigned d = 0; d < 4; d ++) {
-                int x = next_move.x;
-                int y = next_move.y;
-                unsigned dist = s.move_xy(x, y, d, &::linkage, &ls);
-                if (ls.ins != 0 || dist == 1) {
-                        // Where there is a match.
-                        if ((s.collides_edges(x, y, d) ||
-                             s.is(x, y) == opponent_of(who)))
-                                // Where the link is blocked.
-                                ls.ins --;
-                } else {
-                        ls.del = 0;
-                }
+                acc_link_stat(s, next_move, who, d, ls);
+                acc_link_stat(s, next_move, who, (d + 4)%8, ls);
 
-                x = next_move.x;
-                y = next_move.y;
-                dist = s.move_xy(x, y, (d + 4)%8, &::linkage, &ls2);
-                if (ls2.ins != 0 || dist == 1) {
-                        // Where there is a match.
-                        if ((s.collides_edges(x, y, (d + 4)%8) ||
-                             s.is(x, y) == opponent_of(who)))
-                                // Where the link is blocked.
-                                ls2.ins --;
-                } else {
-                        ls2.del = 0;
-                }
-
-                int exp = extra_moves + (int) (ls.ins + ls2.ins) - /*3.0f/4.0f**/((float) (ls.del + ls2.del));
+                // s = x^2*2^x
+                int exp = extra_moves + (int) ls.ins - 3*(int) ls.del/4;
                 if (exp >= 0)
                         score += exp*exp*(1 << exp);
-
                 ls.reset();
-                ls2.reset();
         }
         return score;
 }

@@ -56,6 +56,8 @@ private:
         void    exponent(const State& s, const Move& move, Exp& exp) const;
         float   evaluate_move(const State& s, const Move& move, int who) const;
         float   benefit(const State& s, const Move& next_move, int who, int extra_moves) const;
+        void    acc_link_stat(const State& s, const Move& next_move,
+                              int who, unsigned d, LinkStat& ls) const;
 
         Exp*                    m_exp_map = nullptr;
         unsigned                m_exp_w = 0;
