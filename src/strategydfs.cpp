@@ -45,12 +45,12 @@ StrategyDFS::~StrategyDFS()
 {
 }
 
-static float minimizer(State& s, Heuristics& h, float alpha, float beta,
-                       unsigned depth, const unsigned& limit, std::vector<Move>& path, StopWatch& watch);
-static float maximizer(State& s, Heuristics& h, float alpha, float beta,
-                       unsigned depth, const unsigned& limit, std::vector<Move>& path, StopWatch& watch);
+static float minimizer(State& s, Heuristics& h, float alpha, float beta, unsigned depth, const unsigned& limit,
+                       bool& is_timed_out, std::vector<Move>& path, StopWatch& watch);
+static float maximizer(State& s, Heuristics& h, float alpha, float beta, unsigned depth, const unsigned& limit,
+                       bool& is_timed_out, std::vector<Move>& path, StopWatch& watch);
 static float abmin_max_move(State& s, Heuristics& h, unsigned limit,
-                            std::vector<Move>& path, StopWatch& watch, float* score_map);
+                            bool& is_timed_out, std::vector<Move>& path, StopWatch& watch, float* score_map);
 static void build_actions_fast(State& s, const Heuristics& h, unsigned depth, unsigned limit,
                                std::vector<AvailableAction>& actions);
 
@@ -102,14 +102,16 @@ static void copy_path(std::vector<Move>& src, unsigned depth, unsigned limit, st
                 dst[i] = src[i];
 }
 
-const float TIME_OUT_CODE = 134;
 const float CHECK_POINT_LIMIT = 0;
 
 static float minimizer(State& s, Heuristics& h, float alpha, float beta,
-                       unsigned depth, const unsigned& limit, std::vector<Move>& path, StopWatch& watch)
+                       unsigned depth, const unsigned& limit,
+                       bool& is_timed_out, std::vector<Move>& path, StopWatch& watch)
 {
-        if (watch.check_point() <= CHECK_POINT_LIMIT)
-                return TIME_OUT_CODE;
+        if (watch.check_point() <= CHECK_POINT_LIMIT) {
+                is_timed_out = true;
+                return beta;
+        }
 
         std::vector<AvailableAction> actions;
         build_actions_fast(s, h, depth, limit, actions);
@@ -129,14 +131,15 @@ static float minimizer(State& s, Heuristics& h, float alpha, float beta,
                                 cur_score = h.evaluate(s, cur_move);
                         else {
                                 h.try_move(s, cur_move);
-                                cur_score = maximizer(s, h, alpha, score, depth + 1, limit, sub_path, watch);
+                                cur_score = maximizer(s, h, alpha, score, depth + 1, limit,
+                                                      is_timed_out, sub_path, watch);
                                 h.untry_move();
                         }
                 }
                 s.set_move(action.x, action.y, State::NO_PIECE);
 
-                if (cur_score == TIME_OUT_CODE)
-                        return TIME_OUT_CODE;
+                if (is_timed_out)
+                        return score;
 
                 if (cur_score <= alpha)
                        return -INFINITY;
@@ -152,10 +155,13 @@ static float minimizer(State& s, Heuristics& h, float alpha, float beta,
 }
 
 static float maximizer(State& s, Heuristics& h, float alpha, float beta,
-                       unsigned depth, const unsigned& limit, std::vector<Move>& path, StopWatch& watch)
+                       unsigned depth, const unsigned& limit,
+                       bool& is_timed_out, std::vector<Move>& path, StopWatch& watch)
 {
-        if (watch.check_point() <= CHECK_POINT_LIMIT)
-                return TIME_OUT_CODE;
+        if (watch.check_point() <= CHECK_POINT_LIMIT) {
+                is_timed_out = true;
+                return alpha;
+        }
 
         std::vector<AvailableAction> actions;
         build_actions_fast(s, h, depth, limit, actions);
@@ -175,14 +181,15 @@ static float maximizer(State& s, Heuristics& h, float alpha, float beta,
                                 cur_score = h.evaluate(s, cur_move);
                         } else {
                                 h.try_move(s, cur_move);
-                                cur_score = minimizer(s, h, score, beta, depth + 1, limit, sub_path, watch);
+                                cur_score = minimizer(s, h, score, beta, depth + 1, limit,
+                                                      is_timed_out, sub_path, watch);
                                 h.untry_move();
                         }
                 }
                 s.set_move(action.x, action.y, State::NO_PIECE);
 
-                if (cur_score == TIME_OUT_CODE)
-                        return TIME_OUT_CODE;
+                if (is_timed_out)
+                        return score;
 
                 if (cur_score >= beta)
                         return INFINITY;
@@ -198,10 +205,12 @@ static float maximizer(State& s, Heuristics& h, float alpha, float beta,
 }
 
 static float abmin_max_move(State& s, Heuristics& h, unsigned limit,
-                            std::vector<Move>& path, StopWatch& watch, float* score_map)
+                            bool& is_timed_out, std::vector<Move>& path, StopWatch& watch, float* score_map)
 {
-        if (watch.check_point() <= CHECK_POINT_LIMIT)
-                return TIME_OUT_CODE;
+        if (watch.check_point() <= CHECK_POINT_LIMIT) {
+                is_timed_out = true;
+                return NAN;
+        }
 
         path.clear();
         path.resize(limit);
@@ -227,14 +236,15 @@ static float abmin_max_move(State& s, Heuristics& h, unsigned limit,
                                 cur_score = h.evaluate(s, cur_move);
                         else {
                                 h.try_move(s, cur_move);
-                                cur_score = minimizer(s, h, -FLT_MAX, FLT_MAX, 1, limit, sub_path, watch);
+                                cur_score = minimizer(s, h, -FLT_MAX, FLT_MAX, 1, limit,
+                                                      is_timed_out, sub_path, watch);
                                 h.untry_move();
                         }
                 }
                 s.set_move(action.x, action.y, State::NO_PIECE);
 
-                if (cur_score == TIME_OUT_CODE)
-                        return TIME_OUT_CODE;
+                if (is_timed_out)
+                        return score;
 
                 if (score_map)
                         score_map[action.x + s.num_cols*action.y] = cur_score;
@@ -260,11 +270,14 @@ void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Mov
         unsigned d = quality;
         unsigned max = s.num_left;
         do {
+                bool is_timed_out = false;
                 HeuristicCostBenefit h(true, d);
                 float score = abmin_max_move(const_cast<State&>(s), h,
-                                             d ++, path, watch, nullptr);
-                if (score == TIME_OUT_CODE)
+                                             d ++, is_timed_out, path, watch, nullptr);
+                if (is_timed_out) {
+                        std::cout << "Timed out: " << watch.check_point() << std::endl;
                         break;
+                }
                 std::cout << "Accomplished depth " << d - 1 << ", selecting ";
                 ::print_path(std::cout, path);
                 std::cout << std::endl;
@@ -290,7 +303,8 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& s, int depth) co
 
         StopWatch watch;
         watch.begin(20000);
-        abmin_max_move(const_cast<State&>(s), h, depth, path, watch, score_map);
+        bool is_timed_out = false;
+        abmin_max_move(const_cast<State&>(s), h, depth, is_timed_out, path, watch, score_map);
 
         ::print_path(os, path);
         os << std::endl;
@@ -319,10 +333,11 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth, un
         watch.begin(20000);
 
         HeuristicCostBenefit h(true, depth);
+        bool is_timed_out = false;
 
         s.set_move(x, y, State::AI_PIECE);
         h.try_move(s, Move(x, y));
-        float cur_score = minimizer(s, h, -FLT_MAX, FLT_MAX, 1, depth, path, watch);
+        float cur_score = minimizer(s, h, -FLT_MAX, FLT_MAX, 1, depth, is_timed_out, path, watch);
         h.untry_move();
         s.set_move(x, y, State::NO_PIECE);
 
