@@ -20,6 +20,7 @@ public:
         virtual void    untry_move();
         virtual float   coarse_eval(const State& s, const Move& next_move) const;
         virtual float   evaluate(const State& s, const Move& next_move) const = 0;
+        virtual bool    is_goal_for(const State& s, const Move& next_move, int who) const;
         virtual void    print(std::ostream& os) const;
 };
 

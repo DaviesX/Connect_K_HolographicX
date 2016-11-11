@@ -9,6 +9,10 @@ IStrategy::~IStrategy()
 {
 }
 
+void IStrategy::load_state(const State& s)
+{
+}
+
 void IStrategy::print(std::ostream& os) const
 {
         os << "IStrategy = [Not implemented]";

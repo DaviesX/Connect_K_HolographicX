@@ -14,7 +14,7 @@ class IStrategy
 public:
         IStrategy();
         virtual ~IStrategy();
-        virtual void    load_state(const State& s) = 0;
+        virtual void    load_state(const State& s);
         virtual void    make_move(const State& s, unsigned quality, unsigned time, Move& m) const = 0;
         virtual void    print(std::ostream& os) const;
 };
