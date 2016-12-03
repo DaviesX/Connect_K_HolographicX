@@ -9,25 +9,16 @@ static inline int tst_heurcostbenefit()
 {
         State s = tst_state_create_sample10();
 
-        std::cout << "Preview: " << std::endl;
-        std::cout << s << std::endl;
-
-        HeuristicCostBenefit h(true, 3);
-        h.load_state(s);
-        std::cout << "Preview heuristics: " << std::endl;
-        h.print(std::cout);
-        std::cout << std::endl;
-
-
         s.set_move(4, 1, State::AI_PIECE);
         s.set_move(1, 4, State::HUMAN_PIECE);
 
-        std::cout << "State after makeing moves " << std::endl;
+        std::cout << "Preview: " << std::endl;
         std::cout << s << std::endl;
 
+        HeuristicCostBenefit h(true);
+        h.load_state(s);
         h.try_move(s, Move(4, 1));
         h.try_move(s, Move(1, 4));
-
 #if 1
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {

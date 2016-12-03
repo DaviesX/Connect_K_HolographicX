@@ -90,13 +90,13 @@ void return_move(const Move& move)
 
 int main()
 {
-#if 0
+#if 1
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
         do {
                 const State& state = ::obtain_current_state();
                 Move m;
                 strategy->load_state(state);
-                strategy->make_move(state, 2, 10000, m);
+                strategy->make_move(state, 2, state.deadline - 120, m);
                 ::return_move(m);
         } while (true);
         delete strategy;
@@ -104,8 +104,8 @@ int main()
 #else
         clock_t begin = clock();
         // tst_heursuccesslink();
-        tst_heurcostbenefit();
-        //tst_strategydfs();
+        //tst_heurcostbenefit();
+        tst_strategydfs();
         // tst_state();
         // tst_state2();
         clock_t end = clock();
