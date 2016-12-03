@@ -59,6 +59,20 @@ void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, s
         }
 }
 
+void StrategyDFS::build_first_level(State& s, float* score_map, std::vector<AvailableAction>& actions) const
+{
+        for (unsigned y = 0; y < s.num_rows; y ++) {
+                for (unsigned x = 0; x < s.num_cols; x ++) {
+                        if (s.is(x, y) != State::NO_PIECE)
+                                continue;
+                        float score = score_map[x + y*s.num_cols];
+                        actions.push_back(AvailableAction(x, y, score));
+                }
+        }
+        std::sort(actions.begin(), actions.end(),
+                  [](const AvailableAction& a, const AvailableAction& b) {return a > b;});
+}
+
 static void print_path(std::ostream& os, std::vector<Move> path)
 {
         os << "Path = [";
@@ -186,7 +200,7 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, std::vector<Move>& p
         float score = -INFINITY;
 
         std::vector<AvailableAction> actions;
-        build_actions_fast(s, 0, limit, actions);
+        build_first_level(s, score_map, actions);
 
         m_heur->load_state(s);
 
@@ -234,9 +248,15 @@ void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Mov
 
         unsigned d = quality;
         unsigned max = s.num_left;
+        float* score_map = new float [s.num_cols*s.num_rows];
+        for (unsigned j = 0; j < s.num_rows; j ++) {
+                for (unsigned i = 0; i < s.num_cols; i ++) {
+                        score_map[i + j*s.num_cols] = 0;
+                }
+        }
         do {
                 float score = abmin_max_move(const_cast<State&>(s),
-                                             d ++, path, watch, nullptr);
+                                             d ++, path, watch, score_map);
                 if (score == TIME_OUT_CODE)
                         break;
                 std::cout << "Accomplished depth " << d - 1 << ", selecting ";
@@ -245,6 +265,7 @@ void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Mov
                 std::cout << "Current score: " << score << std::endl;
                 m = path[0];
         } while (d < max);
+        delete [] score_map;
 }
 
 void StrategyDFS::print_analysis(std::ostream& os, const State& s, int depth) const

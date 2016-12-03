@@ -52,6 +52,7 @@ private:
                                        std::vector<Move>& path, StopWatch& watch,
                                        float* score_map) const;
         void            build_actions_fast(State& s, unsigned depth, unsigned limit, std::vector<AvailableAction>& actions) const;
+        void            build_first_level(State& s, float* score_map, std::vector<AvailableAction>& actions) const;
 
         HeuristicCostBenefit* m_heur;
 };
