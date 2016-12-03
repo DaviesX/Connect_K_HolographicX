@@ -21,7 +21,8 @@ SOURCES += \
     src/strategyfactory.cpp \
     src/strategyrand.cpp \
     src/heurchessdeg.cpp \
-    src/heurcostbenefit.cpp
+    src/heurcostbenefit.cpp \
+    src/heurultimate.cpp
 
 HEADERS += \
     src/iheuristic.h \
@@ -38,4 +39,6 @@ HEADERS += \
     src/heurchessdeg.h \
     src/heurcostbenefit.h \
     src/tst_heurchessdeg.h \
-    src/tst_heurcostbenefit.h
+    src/tst_heurcostbenefit.h \
+    heurultimate.h \
+    src/heurultimate.h

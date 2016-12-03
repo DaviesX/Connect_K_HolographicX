@@ -29,17 +29,36 @@ void StrategyDFS::load_state(const State& s)
         m_heur->load_state(s);
 }
 
-void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, std::vector<AvailableAction>& actions) const
+void StrategyDFS::build_all_actions(State& s, std::vector<AvailableAction>& actions) const
 {
-        if (depth < limit - 1) {
+        if (!s.gravity_on) {
                 for (unsigned y = 0; y < s.num_rows; y ++) {
                         for (unsigned x = 0; x < s.num_cols; x ++) {
                                 if (s.is(x, y) != State::NO_PIECE)
                                         continue;
-                                float score = m_heur->coarse_eval(s, Move(x, y));
-                                actions.push_back(AvailableAction(x, y, score));
+                                actions.push_back(AvailableAction(x, y, 0));
                         }
                 }
+        } else {
+                for (unsigned x = 0; x < s.num_cols; x ++) {
+                        for (unsigned y = 0; y < s.num_rows; y ++) {
+                                if (s.is(x, y) == State::NO_PIECE) {
+                                        actions.push_back(AvailableAction(x, y, 0));
+                                        break;
+                                }
+                        }
+                }
+        }
+}
+
+void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, std::vector<AvailableAction>& actions) const
+{
+        build_all_actions(s, actions);
+
+        if (depth < limit - 1) {
+                for (AvailableAction action: actions)
+                        action.score = m_heur->coarse_eval(s, Move(action.x, action.y));
+
                 if ((depth & 1) == 0)
                         std::sort(actions.begin(), actions.end(),
                                   [](const AvailableAction& a, const AvailableAction& b) {return a > b;});
@@ -48,27 +67,16 @@ void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, s
                                   [](const AvailableAction& a, const AvailableAction& b) {return a < b;});
 
         } else {
-                for (unsigned y = 0; y < s.num_rows; y ++) {
-                        for (unsigned x = 0; x < s.num_cols; x ++) {
-                                if (s.is(x, y) != State::NO_PIECE)
-                                        continue;
-                                actions.push_back(AvailableAction(x, y, 0));
-                        }
-                }
                 std::random_shuffle(actions.begin(), actions.end());
         }
 }
 
 void StrategyDFS::build_first_level(State& s, float* score_map, std::vector<AvailableAction>& actions) const
 {
-        for (unsigned y = 0; y < s.num_rows; y ++) {
-                for (unsigned x = 0; x < s.num_cols; x ++) {
-                        if (s.is(x, y) != State::NO_PIECE)
-                                continue;
-                        float score = score_map[x + y*s.num_cols];
-                        actions.push_back(AvailableAction(x, y, score));
-                }
-        }
+        build_all_actions(s, actions);
+        for (AvailableAction action: actions)
+                action.score = score_map[action.x + action.y*s.num_cols];
+
         std::sort(actions.begin(), actions.end(),
                   [](const AvailableAction& a, const AvailableAction& b) {return a > b;});
 }

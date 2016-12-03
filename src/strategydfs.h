@@ -37,9 +37,9 @@ private:
                         return score > action.score;
                 }
 
-                int     x;
-                int     y;
-                float   score;
+                unsigned char   x;
+                unsigned char   y;
+                float           score;
         };
 
         float           minimizer(State& s, float alpha, float beta,
@@ -51,6 +51,7 @@ private:
         float           abmin_max_move(State& s, unsigned limit,
                                        std::vector<Move>& path, StopWatch& watch,
                                        float* score_map) const;
+        void            build_all_actions(State& s, std::vector<AvailableAction>& actions) const;
         void            build_actions_fast(State& s, unsigned depth, unsigned limit, std::vector<AvailableAction>& actions) const;
         void            build_first_level(State& s, float* score_map, std::vector<AvailableAction>& actions) const;
 
