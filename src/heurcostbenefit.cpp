@@ -5,14 +5,12 @@
 #include "heurcostbenefit.h"
 
 
-HeuristicCostBenefit::HeuristicCostBenefit(bool fast_eval):
-        m_fast_eval(fast_eval)
+HeuristicCostBenefit::HeuristicCostBenefit()
 {
 }
 
 HeuristicCostBenefit::~HeuristicCostBenefit()
 {
-        delete [] m_exp_map;
 }
 
 static bool linkage(const char* val, int x, int y, unsigned dist, void* data)
@@ -31,21 +29,6 @@ static bool linkage(const char* val, int x, int y, unsigned dist, void* data)
                 }
         } else
                 return false;
-}
-
-void HeuristicCostBenefit::exponent(const State& s, const Move& m, Exp& exp) const
-{
-}
-
-void HeuristicCostBenefit::load_state(const State& s)
-{
-        if (m_exp_map == nullptr ||
-            m_exp_w != s.num_cols ||
-            m_exp_h != s.num_rows) {
-                m_exp_w = s.num_cols;
-                m_exp_h = s.num_rows;
-                m_exp_map = new Exp [m_exp_w*m_exp_h];
-        }
 }
 
 float HeuristicCostBenefit::benefit(const State& s, const Move& next_move,
