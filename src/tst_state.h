@@ -6,7 +6,7 @@
 
 static inline State tst_state_create_sample()
 {
-        State s(7, 7, true, Move(3, 4), 5, 5000);
+        State s(7, 7, false, Move(3, 4), 5, 5000);
 
         s.set_move(1, 1, State::AI_PIECE);
         s.set_move(2, 2, State::AI_PIECE);
@@ -34,14 +34,14 @@ static inline State tst_state_create_sample()
 
 static inline State tst_state_create_sample2()
 {
-        State s(9, 7, true, Move(4, 2), 5, 5000);
+        State s(9, 7, false, Move(4, 2), 5, 5000);
         s.set_move(4, 2, State::HUMAN_PIECE);
         return s;
 }
 
 static inline State tst_state_create_sample3()
 {
-        State s(8, 8, true, Move(7, 2), 5, 5000);
+        State s(8, 8, false, Move(7, 2), 5, 5000);
 
         s.set_move(3, 4, State::AI_PIECE);
         s.set_move(4, 4, State::AI_PIECE);
@@ -65,7 +65,7 @@ static inline State tst_state_create_sample3()
 
 static inline State tst_state_create_sample4()
 {
-        State s(8, 8, true, Move(7, 2), 5, 5000);
+        State s(8, 8, false, Move(7, 2), 5, 5000);
 
         s.set_move(1, 5, State::AI_PIECE);
         s.set_move(3, 5, State::AI_PIECE);
@@ -89,7 +89,7 @@ static inline State tst_state_create_sample4()
 
 static inline State tst_state_create_sample5()
 {
-        State s(3, 3, true, Move(2, 1), 3, 5000);
+        State s(3, 3, false, Move(2, 1), 3, 5000);
 
         s.set_move(0, 0, State::AI_PIECE);
         s.set_move(1, 1, State::AI_PIECE);
@@ -105,7 +105,7 @@ static inline State tst_state_create_sample5()
 
 static inline State tst_state_create_sample6()
 {
-        State s(8, 8, true, Move(2, 1), 5, 5000);
+        State s(8, 8, false, Move(2, 1), 5, 5000);
         s.set_move(2, 7, State::AI_PIECE);
         s.set_move(3, 7, State::AI_PIECE);
 
@@ -118,7 +118,7 @@ static inline State tst_state_create_sample6()
 
 static inline State tst_state_create_sample7()
 {
-        State s(8, 8, true, Move(5, 3), 5, 5000);
+        State s(8, 8, false, Move(5, 3), 5, 5000);
         s.set_move(2, 3, State::AI_PIECE);
         s.set_move(2, 2, State::AI_PIECE);
         s.set_move(3, 4, State::AI_PIECE);
@@ -135,7 +135,7 @@ static inline State tst_state_create_sample7()
 
 static inline State tst_state_create_sample8()
 {
-        State s(8, 8, true, Move(5, 3), 5, 5000);
+        State s(8, 8, false, Move(5, 3), 5, 5000);
         s.set_move(3, 5, State::AI_PIECE);
         s.set_move(2, 3, State::AI_PIECE);
         s.set_move(4, 2, State::AI_PIECE);
@@ -154,7 +154,7 @@ static inline State tst_state_create_sample8()
 
 static inline State tst_state_create_sample9()
 {
-        State s(9, 7, true, Move(5, 3), 5, 5000);
+        State s(9, 7, false, Move(5, 3), 5, 5000);
 
         s.set_move(3, 3, State::AI_PIECE);
         s.set_move(5, 2, State::AI_PIECE);
@@ -185,7 +185,7 @@ static inline State tst_state_create_sample9()
 
 static inline State tst_state_create_sample10()
 {
-        State s(9, 7, true, Move(5, 3), 5, 5000);
+        State s(9, 7, false, Move(5, 3), 5, 5000);
 
         s.set_move(3, 2, State::AI_PIECE);
         s.set_move(2, 3, State::AI_PIECE);

@@ -11,12 +11,14 @@
 #include "iheuristic.h"
 #include "heurchessdeg.h"
 #include "heurcostbenefit.h"
+#include "heurultimate.h"
 
 
 StrategyDFS::StrategyDFS()
 {
         //m_heur = new HeuristicChessDegree();
-        m_heur = new HeuristicCostBenefit();
+        //m_heur = new HeuristicCostBenefit();
+        m_heur = new HeuristicUltimate();
 }
 
 StrategyDFS::~StrategyDFS()
@@ -113,7 +115,9 @@ float StrategyDFS::minimizer(State& s, float alpha, float beta,
 
         float score = beta;
         //float score = FLT_MAX;
-        for (AvailableAction action: actions) {
+        for (unsigned i = 0; i < actions.size(); i ++) {
+                const AvailableAction& action = actions[i];
+
                 Move cur_move(action.x, action.y);
 
                 std::vector<Move> sub_path(limit);
@@ -160,7 +164,9 @@ float StrategyDFS::maximizer(State& s, float alpha, float beta,
 
         float score = alpha;
         //float score = -FLT_MAX;
-        for (AvailableAction action: actions) {
+        for (unsigned i = 0; i < actions.size(); i ++) {
+                const AvailableAction& action = actions[i];
+
                 Move cur_move(action.x, action.y);
 
                 std::vector<Move> sub_path(limit);
@@ -212,7 +218,9 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, std::vector<Move>& p
 
         m_heur->load_state(s);
 
-        for (AvailableAction action: actions) {
+        for (unsigned i = 0; i < actions.size(); i ++) {
+                const AvailableAction& action = actions[i];
+
                 Move cur_move(action.x, action.y);
 
                 s.set_move(action.x, action.y, State::AI_PIECE);
@@ -249,13 +257,19 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, std::vector<Move>& p
 
 void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Move& m) const
 {
-        //std::srand(std::time(nullptr));
+        if (s.last_move.x == 255 && s.last_move.y == 255) {
+                // Hard code first move.
+                m.set(s.num_cols/2, s.num_rows/2);
+                return;
+        }
+
         std::vector<Move> path;
         StopWatch watch;
         watch.begin(time);
 
         unsigned d = quality;
         unsigned max = s.num_left;
+
         float* score_map = new float [s.num_cols*s.num_rows];
         for (unsigned j = 0; j < s.num_rows; j ++) {
                 for (unsigned i = 0; i < s.num_cols; i ++) {
@@ -267,10 +281,10 @@ void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Mov
                                              d ++, path, watch, score_map);
                 if (score == TIME_OUT_CODE)
                         break;
-                std::cout << "Accomplished depth " << d - 1 << ", selecting ";
-                ::print_path(std::cout, path);
-                std::cout << std::endl;
-                std::cout << "Current score: " << score << std::endl;
+                //std::cout << "Accomplished depth " << d - 1 << ", selecting ";
+                //::print_path(std::cout, path);
+                //std::cout << std::endl;
+                //std::cout << "Current score: " << score << std::endl;
                 m = path[0];
         } while (d < max);
         delete [] score_map;

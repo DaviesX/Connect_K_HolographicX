@@ -84,7 +84,7 @@ static int tst_strategydfs()
         expected.push_back(m11);
 
         const unsigned t = 5000;
-        const unsigned d = 3;
+        const unsigned d = 2;
         const bool escape = false;
 
         StrategyDFS strategy;
@@ -95,6 +95,8 @@ static int tst_strategydfs()
         for (unsigned i = 0; i < states.size(); i ++) {
                 std::cout << "Preview state: " << i + 1 << std::endl;
                 std::cout << states[i] << std::endl;
+
+                strategy.load_state(states[i]);
 
                 if (is_expected(strategy, states[i], d, t, expected[i], m)) {
                         std::cout << "Passed sample " << i + 1 << std::endl;

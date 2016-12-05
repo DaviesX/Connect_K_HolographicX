@@ -87,9 +87,9 @@ void HeuristicCostBenefit::untry_move()
 float HeuristicCostBenefit::evaluate_move(const State& s, const Move& move, int who) const
 {
         if (who == State::HUMAN_PIECE)
-                return benefit(s, move, who, 2);
+                return benefit(s, move, who, 3);
         else
-                return benefit(s, move, who, 1);
+                return benefit(s, move, who, 2);
 }
 
 float HeuristicCostBenefit::coarse_eval(const State& s, const Move& next_move) const

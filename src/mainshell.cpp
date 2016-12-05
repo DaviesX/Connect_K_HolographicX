@@ -85,6 +85,7 @@ void return_move(const Move& move)
 // Unit tests
 #include "tst_state.h"
 #include "tst_heurcostbenefit.h"
+#include "tst_heurultimate.h"
 #include "tst_heurchessdeg.h"
 #include "tst_strategydfs.h"
 
@@ -96,7 +97,7 @@ int main()
                 const State& state = ::obtain_current_state();
                 Move m;
                 strategy->load_state(state);
-                strategy->make_move(state, 2, 8000, m);
+                strategy->make_move(state, 2, state.deadline - 100, m);
                 ::return_move(m);
         } while (true);
         delete strategy;
@@ -105,6 +106,7 @@ int main()
         clock_t begin = clock();
         // tst_heursuccesslink();
         //tst_heurcostbenefit();
+        //tst_heurultimate();
         tst_strategydfs();
         // tst_state();
         // tst_state2();

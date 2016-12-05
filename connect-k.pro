@@ -41,4 +41,5 @@ HEADERS += \
     src/tst_heurchessdeg.h \
     src/tst_heurcostbenefit.h \
     heurultimate.h \
-    src/heurultimate.h
+    src/heurultimate.h \
+    src/tst_heurultimate.h

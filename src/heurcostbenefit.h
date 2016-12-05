@@ -2,6 +2,8 @@
 #define HEUR_COST_BENEFIT_H
 
 #include <vector>
+#include "move.h"
+#include "state.h"
 #include "iheuristic.h"
 
 class HeuristicCostBenefit: public IHeuristic
@@ -40,16 +42,6 @@ public:
                 unsigned        state = 0;
                 unsigned        del = 0;
                 int             oppo;
-        };
-
-        // Exponent at each direction.
-        struct Exp {
-                Exp()
-                {
-                        *(unsigned*)exp = 0;
-                }
-
-                char exp[4];
         };
 private:
         float   evaluate_move(const State& s, const Move& move, int who) const;

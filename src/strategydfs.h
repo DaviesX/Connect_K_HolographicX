@@ -55,7 +55,7 @@ private:
         void            build_actions_fast(State& s, unsigned depth, unsigned limit, std::vector<AvailableAction>& actions) const;
         void            build_first_level(State& s, float* score_map, std::vector<AvailableAction>& actions) const;
 
-        HeuristicCostBenefit* m_heur;
+        IHeuristic*     m_heur;
 };
 
 
