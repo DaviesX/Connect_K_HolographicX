@@ -53,13 +53,21 @@ void StrategyDFS::build_all_actions(State& s, std::vector<AvailableAction>& acti
         }
 }
 
-void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, std::vector<AvailableAction>& actions) const
+void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, const std::vector<Move>& suggestions, std::vector<AvailableAction>& actions) const
 {
         build_all_actions(s, actions);
 
+        Move suggested(255, 255);
+        if (suggestions.size() > depth)
+                suggested = suggestions[depth];
+
         if (depth < limit - 1) {
-                for (AvailableAction action: actions)
-                        action.score = m_heur->coarse_eval(s, Move(action.x, action.y));
+                for (AvailableAction action: actions) {
+                        if (action.x == suggested.x && action.y == suggested.y)
+                                action.score = FLT_MAX;
+                        else
+                                action.score = m_heur->coarse_eval(s, Move(action.x, action.y));
+                }
 
                 if ((depth & 1) == 0)
                         std::sort(actions.begin(), actions.end(),
@@ -104,14 +112,14 @@ const float CHECK_POINT_LIMIT = 0;
 const float TIME_OUT_CODE = -533431;
 
 float StrategyDFS::minimizer(State& s, float alpha, float beta,
-                             unsigned depth, const unsigned& limit,
+                             unsigned depth, const unsigned& limit, const std::vector<Move>& suggestions,
                              std::vector<Move>& path, StopWatch& watch) const
 {
         if (watch.check_point() <= CHECK_POINT_LIMIT)
                 return TIME_OUT_CODE;
 
         std::vector<AvailableAction> actions;
-        build_actions_fast(s, depth, limit, actions);
+        build_actions_fast(s, depth, limit, suggestions, actions);
 
         float score = beta;
         //float score = FLT_MAX;
@@ -130,7 +138,7 @@ float StrategyDFS::minimizer(State& s, float alpha, float beta,
                                 cur_score = m_heur->evaluate(s, cur_move);
                         else {
                                 m_heur->try_move(s, cur_move);
-                                cur_score = maximizer(s, alpha, score, depth + 1, limit, sub_path, watch);
+                                cur_score = maximizer(s, alpha, score, depth + 1, limit, suggestions, sub_path, watch);
                                 m_heur->untry_move();
                         }
                 }
@@ -153,14 +161,14 @@ float StrategyDFS::minimizer(State& s, float alpha, float beta,
 }
 
 float StrategyDFS::maximizer(State& s, float alpha, float beta,
-                             unsigned depth, const unsigned& limit,
+                             unsigned depth, const unsigned& limit, const std::vector<Move>& suggestions,
                              std::vector<Move>& path, StopWatch& watch) const
 {
         if (watch.check_point() <= CHECK_POINT_LIMIT)
                 return TIME_OUT_CODE;
 
         std::vector<AvailableAction> actions;
-        build_actions_fast(s, depth, limit, actions);
+        build_actions_fast(s, depth, limit, suggestions, actions);
 
         float score = alpha;
         //float score = -FLT_MAX;
@@ -179,7 +187,7 @@ float StrategyDFS::maximizer(State& s, float alpha, float beta,
                                 cur_score = m_heur->evaluate(s, cur_move);
                         } else {
                                 m_heur->try_move(s, cur_move);
-                                cur_score = minimizer(s, score, beta, depth + 1, limit, sub_path, watch);
+                                cur_score = minimizer(s, score, beta, depth + 1, limit, suggestions, sub_path, watch);
                                 m_heur->untry_move();
                         }
                 }
@@ -201,7 +209,8 @@ float StrategyDFS::maximizer(State& s, float alpha, float beta,
         return score;
 }
 
-float StrategyDFS::abmin_max_move(State& s, unsigned limit, std::vector<Move>& path, StopWatch& watch, float* score_map) const
+float StrategyDFS::abmin_max_move(State& s, unsigned limit, const std::vector<Move>& suggestions,
+                                  std::vector<Move>& path, StopWatch& watch, float* score_map) const
 {
         if (watch.check_point() <= CHECK_POINT_LIMIT)
                 return TIME_OUT_CODE;
@@ -232,7 +241,7 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, std::vector<Move>& p
                                 cur_score = m_heur->evaluate(s, cur_move);
                         else {
                                 m_heur->try_move(s, cur_move);
-                                cur_score = minimizer(s, -FLT_MAX, FLT_MAX, 1, limit, sub_path, watch);
+                                cur_score = minimizer(s, -FLT_MAX, FLT_MAX, 1, limit, suggestions, sub_path, watch);
                                 m_heur->untry_move();
                         }
                 }
@@ -264,6 +273,7 @@ void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Mov
         }
 
         std::vector<Move> path;
+        std::vector<Move> suggestions;
         StopWatch watch;
         watch.begin(time);
 
@@ -278,14 +288,15 @@ void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Mov
         }
         do {
                 float score = abmin_max_move(const_cast<State&>(s),
-                                             d ++, path, watch, score_map);
+                                             d ++, suggestions, path, watch, score_map);
                 if (score == TIME_OUT_CODE)
                         break;
-                //std::cout << "Accomplished depth " << d - 1 << ", selecting ";
-                //::print_path(std::cout, path);
-                //std::cout << std::endl;
-                //std::cout << "Current score: " << score << std::endl;
+                std::cout << "Accomplished depth " << d - 1 << ", selecting ";
+                ::print_path(std::cout, path);
+                std::cout << std::endl;
+                std::cout << "Current score: " << score << std::endl;
                 m = path[0];
+                suggestions = path;
         } while (d < max);
         delete [] score_map;
 }
@@ -293,6 +304,7 @@ void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Mov
 void StrategyDFS::print_analysis(std::ostream& os, const State& s, int depth) const
 {
         std::vector<Move> path;
+        std::vector<Move> suggestions;
         float* score_map = new float [s.num_cols*s.num_rows];
         for (unsigned y = 0; y < s.num_rows; y ++) {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
@@ -305,7 +317,7 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& s, int depth) co
 
         StopWatch watch;
         watch.begin(20000);
-        abmin_max_move(const_cast<State&>(s), depth, path, watch, score_map);
+        abmin_max_move(const_cast<State&>(s), depth, path, suggestions, watch, score_map);
 
         ::print_path(os, path);
         os << std::endl;
@@ -330,12 +342,13 @@ void StrategyDFS::print_analysis(std::ostream& os, const State& k, int depth, un
         }
 
         std::vector<Move> path(depth);
+        std::vector<Move> suggestions;
         StopWatch watch;
         watch.begin(20000);
 
         s.set_move(x, y, State::AI_PIECE);
         m_heur->try_move(s, Move(x, y));
-        float cur_score = minimizer(s, -FLT_MAX, FLT_MAX, 1, depth, path, watch);
+        float cur_score = minimizer(s, -FLT_MAX, FLT_MAX, 1, depth, suggestions, path, watch);
         m_heur->untry_move();
         s.set_move(x, y, State::NO_PIECE);
 
