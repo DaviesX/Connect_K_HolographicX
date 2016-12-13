@@ -291,10 +291,10 @@ void StrategyDFS::make_move(const State& s, unsigned quality, unsigned time, Mov
                                              d ++, suggestions, path, watch, score_map);
                 if (score == TIME_OUT_CODE)
                         break;
-                //std::cout << "Accomplished depth " << d - 1 << ", selecting ";
-                //::print_path(std::cout, path);
-                //std::cout << std::endl;
-                //std::cout << "Current score: " << score << std::endl;
+                std::cout << "Accomplished depth " << d - 1 << ", selecting ";
+                ::print_path(std::cout, path);
+                std::cout << std::endl;
+                std::cout << "Current score: " << score << std::endl;
                 m = path[0];
                 suggestions = path;
         } while (d < max);

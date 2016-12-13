@@ -47,10 +47,11 @@ HeuristicUltimate::ComponentReference* HeuristicUltimate::cnn_map_m(unsigned cha
 
 void HeuristicUltimate::mark_dead_moves(const State& st, int who)
 {
-        bool has_started = false;
+        bool has_started;
         int opponent = opponent_of(who);
 
         // Scan d = 0.
+        has_started = false;
         for (unsigned j = 0; j < st.num_rows; j ++) {
                 int s = -1;
                 for (unsigned i = 0; i <= st.num_cols; i ++) {
@@ -162,6 +163,23 @@ void HeuristicUltimate::mark_dead_moves(const State& st, int who)
 
 void HeuristicUltimate::extract_connected_components(const State& s, int who)
 {
+        /*bool has_started;
+
+        // Scan d = 0.
+        has_started = false;
+        for (unsigned j = 0; j < st.num_rows; j ++) {
+                int s, e;
+                for (unsigned i = 0; i < st.num_cols; i ++) {
+                        if (s.is(i, j) == who) {
+                                if (!has_started)
+                                        s = i;
+                                has_started = true;
+                        } else if (i == st.num_cols - 1 || s.is(i, j) != who) {
+                                has_started = false;
+
+                        }
+                }
+        }*/
 }
 
 void HeuristicUltimate::load_state(const State& s)
