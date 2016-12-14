@@ -29,7 +29,7 @@ Move& Move::operator=(const Move& rhs)
 
 bool Move::operator== (const Move& rhs)
 {
-        return x == rhs.x && y == rhs.y;
+        return key == rhs.key;
 }
 
 std::ostream& operator<<(std::ostream& os, const Move& move)

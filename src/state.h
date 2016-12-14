@@ -151,6 +151,8 @@ public:
                 }
         };
 
+        bool            operator== (const State& other) const;
+
         int             is(unsigned x, unsigned y) const;
         void            set_move(unsigned x, unsigned y, char who);
 

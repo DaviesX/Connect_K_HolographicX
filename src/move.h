@@ -6,8 +6,12 @@
 class Move
 {
 public:
-        unsigned char y; //the row to move to.
-        unsigned char x; //the col to move to.
+        union {
+                unsigned char y; //the row to move to.
+                unsigned char x; //the col to move to.
+                unsigned short key;
+        };
+
         Move();
         Move(unsigned char x, unsigned char y);
 

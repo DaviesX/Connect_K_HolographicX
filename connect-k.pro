@@ -44,4 +44,5 @@ HEADERS += \
     heurultimate.h \
     src/heurultimate.h \
     src/tst_heurultimate.h \
-    src/strategymcts.h
+    src/strategymcts.h \
+    src/tst_strategymcts.h

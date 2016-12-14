@@ -74,6 +74,15 @@ int State::is(unsigned x, unsigned y) const
         return m_board[x + y*num_cols];
 }
 
+bool State::operator== (const State& other) const
+{
+        for (unsigned i = 0; i < num_cols*num_rows; i ++) {
+                if (m_board[i] != other.m_board[i])
+                        return false;
+        }
+        return true;
+}
+
 void State::set_move(unsigned x, unsigned y, char who)
 {
         char* at = &m_board[x + y*num_cols];

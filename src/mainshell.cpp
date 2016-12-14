@@ -88,10 +88,11 @@ void return_move(const Move& move)
 #include "tst_heurultimate.h"
 #include "tst_heurchessdeg.h"
 #include "tst_strategydfs.h"
+#include "tst_strategymcts.h"
 
 int main()
 {
-#if 1
+#if 0
         IStrategy* strategy = StrategyFactory().create(StrategyFactory::MCTS);
         do {
                 const State& state = ::obtain_current_state();
@@ -107,7 +108,8 @@ int main()
         // tst_heursuccesslink();
         //tst_heurcostbenefit();
         //tst_heurultimate();
-        tst_strategydfs();
+        //tst_strategydfs();
+        tst_strategymcts();
         // tst_state();
         // tst_state2();
         clock_t end = clock();
