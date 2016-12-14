@@ -9,8 +9,9 @@ public:
         enum StrategyType {
                 Random,
                 DFS,
+                MCTS,
         };
-        
+
         IStrategy*      create(StrategyType type) const;
 };
 

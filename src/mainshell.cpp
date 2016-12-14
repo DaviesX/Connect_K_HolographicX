@@ -92,7 +92,7 @@ void return_move(const Move& move)
 int main()
 {
 #if 1
-        IStrategy* strategy = StrategyFactory().create(StrategyFactory::DFS);
+        IStrategy* strategy = StrategyFactory().create(StrategyFactory::MCTS);
         do {
                 const State& state = ::obtain_current_state();
                 Move m;
