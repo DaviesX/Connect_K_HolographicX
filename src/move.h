@@ -7,8 +7,10 @@ class Move
 {
 public:
         union {
-                unsigned char y; //the row to move to.
-                unsigned char x; //the col to move to.
+                struct {
+                        unsigned char y; //the row to move to.
+                        unsigned char x; //the col to move to.
+                };
                 unsigned short key;
         };
 

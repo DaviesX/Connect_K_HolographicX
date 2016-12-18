@@ -8,7 +8,7 @@
 #define NUM_CACHE_NODES 5
 #define CACHE_DEPTH     4
 
-struct AvailableAction;
+struct GameNode;
 
 class StrategyMCTS : public IStrategy
 {

@@ -7,222 +7,308 @@
 #include "strategymcts.h"
 
 
-struct AvailableAction
+struct GameNode
 {
-        AvailableAction(int x, int y)
+        GameNode():
+                m_x(0xFF), m_y(0xFF)
         {
-                pos[0] = x;
-                pos[1] = y;
         }
 
-        void qi(int n_sims)
+        GameNode(int x, int y):
+                m_x(x), m_y(y)
         {
-                q = (float) i_wins/i_sims + sqrt(2*log(n_sims)/i_sims);
         }
 
-        bool operator < (const AvailableAction& action) const
+        float qi(unsigned n_sims) const
         {
-                return q < action.q;
-        }
-
-        bool operator > (const AvailableAction& action) const
-        {
-                return q > action.q;
+                if (m_sims == 0)
+                        return 0.0f;
+                else
+                        return (float) m_wins/m_sims + sqrt(2.0f*log(n_sims)/(float) m_sims);
         }
 
         union {
-                unsigned char   pos[2];
-                unsigned char   x;
-                unsigned char   y;
+                struct {
+                        unsigned char   m_x;
+                        unsigned char   m_y;
+                };
                 unsigned short  key;
         };
-        unsigned int    i_wins = 0;
-        unsigned int    i_sims = 0;
-        float           q;
+        unsigned char   m_num_chn = 0;
+        unsigned char   m_i_chn = 0;
+        GameNode*       m_chn = nullptr;
+        float           m_wins = 0.0f;
+        unsigned        m_sims = 0;
 };
 
 StrategyMCTS::StrategyMCTS()
 {
 }
 
-static void build_all_actions(const State& s, std::vector<AvailableAction>& actions)
+static GameNode* expand_state(const State& s, std::vector<Move>& buf, bool to_nodes)
 {
+        buf.clear();
+
         if (!s.gravity_on) {
                 for (unsigned y = 0; y < s.num_rows; y ++) {
                         for (unsigned x = 0; x < s.num_cols; x ++) {
                                 if (s.is(x, y) != State::NO_PIECE)
                                         continue;
-                                actions.push_back(AvailableAction(x, y));
+                                buf.push_back(Move(x, y));
                         }
                 }
         } else {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         for (unsigned y = 0; y < s.num_rows; y ++) {
                                 if (s.is(x, y) == State::NO_PIECE) {
-                                        actions.push_back(AvailableAction(x, y));
+                                        buf.push_back(Move(x, y));
                                         break;
                                 }
                         }
                 }
         }
+
+        if (to_nodes) {
+                GameNode* nodes = new GameNode [buf.size()];
+                for (unsigned i = 0; i < buf.size(); i ++) {
+                        nodes[i].m_x = buf[i].x;
+                        nodes[i].m_y = buf[i].y;
+                }
+                return nodes;
+        } else
+                return nullptr;
 }
 
 void StrategyMCTS::load_state(const State& s)
 {
 }
 
-void simulate(const State& s, std::vector<AvailableAction>& action_buf, std::vector<unsigned short>& order_buf,
-              const unsigned n_sims, const unsigned max_steps, unsigned& n_wins)
+class MCGameTree
 {
-        ::build_all_actions(s, action_buf);
-        order_buf.resize(action_buf.size());
-        for (unsigned short i = 0; i < action_buf.size(); i ++)
-                order_buf[i] = i;
+        friend std::ostream& operator<< (std::ostream& os, const MCGameTree& mcgt);
+public:
+        struct Sample
+        {
+                unsigned        n_sims;
+                unsigned        n_wins;
+                unsigned        n_losses;
+        };
 
-        State& k = const_cast<State&>(s);
-        Move moves[max_steps];
-        n_wins = 0;
+        MCGameTree(const State& s, unsigned max_depth);
+        ~MCGameTree();
+        GameNode&                       get_optimal_node(unsigned& depth);
+        GameNode&                       get_best_node();
+        void                            expand_node(GameNode& node, unsigned depth);
+        void                            sample_at(const GameNode& node, unsigned depth,
+                                                  unsigned sample_count, Sample& sample);
+        void                            back_propagate(const Sample& samples, GameNode& nodes, unsigned depth);
 
-        for (unsigned i = 0; i < n_sims; i ++) {
-                std::random_shuffle(order_buf.begin(), order_buf.end());
+        float                           win_rate() const;
+private:
+        State                           m_s;
+        GameNode                        m_root;
+        GameNode**                      m_path;
+        unsigned                        m_path_length = 0;
+        unsigned                        m_max_depth;
+        std::vector<Move>               m_node_buf;
+        std::vector<unsigned short>     m_order_buf;
+};
+
+std::ostream& operator<< (std::ostream& os, const MCGameTree& mcgt)
+{
+        os << "Win rate " << mcgt.win_rate();
+        return os;
+}
+
+MCGameTree::MCGameTree(const State& s, unsigned max_depth):
+        m_s(s), m_max_depth(max_depth)
+{
+        m_path = new GameNode* [max_depth];
+
+        m_node_buf.reserve(s.num_left);
+        m_order_buf.reserve(s.num_left);
+}
+
+static void MCGameTree_free(GameNode* node)
+{
+        if (node->m_num_chn == 0)
+                return ;
+        for (unsigned i = 0; i < node->m_num_chn; i ++)
+                MCGameTree_free(&node->m_chn[i]);
+        delete [] node->m_chn;
+}
+
+MCGameTree::~MCGameTree()
+{
+        delete [] m_path;
+        MCGameTree_free(&m_root);
+}
+
+GameNode& MCGameTree::get_optimal_node(unsigned& depth)
+{
+        GameNode* node = &m_root;
+        depth = 0;
+
+        // Reset all the moves.
+        for (unsigned i = 1; i < m_path_length; i ++) {
+                m_s.set_move(m_path[i]->m_x, m_path[i]->m_y, State::NO_PIECE);
+        }
+
+        // Switch to the optimal branch.
+        m_path_length = 0;
+        while (true) {
+                if (node->key != 0xFFFF)
+                        m_s.set_move(node->m_x, node->m_y, ((depth & 1)) == 1 ? State::AI_PIECE : State::HUMAN_PIECE);
+                m_path[m_path_length ++] = node;
+                if (depth >= m_max_depth - 1) {
+                        return *node;
+                } else if (node->m_i_chn < node->m_num_chn) {
+                        return *node;
+                } else if (node->m_num_chn == 0) {
+                        return *node;
+                } else {
+                        unsigned i_opti = 0;
+                        float opti_qi = 0;
+                        for (unsigned i = 0; i < node->m_num_chn; i ++) {
+                                float qi = node->m_chn[i].qi(node->m_sims);
+                                if (qi > opti_qi) {
+                                        opti_qi = qi;
+                                        i_opti = i;
+                                }
+                        }
+                        node = &node->m_chn[i_opti];
+                        depth ++;
+                }
+        }
+}
+
+GameNode& MCGameTree::get_best_node()
+{
+        int i_best = -1;
+        unsigned most = 0;
+        for (unsigned i = 0; i < m_path[0]->m_num_chn; i ++) {
+                if (most < m_path[0]->m_chn[i].m_sims) {
+                        i_best = i;
+                        most = m_path[0]->m_chn[i].m_sims;
+                }
+        }
+        if (i_best == -1)
+                throw std::string("No children from root");
+        return m_path[0]->m_chn[i_best];
+}
+
+void MCGameTree::expand_node(GameNode& node, unsigned depth)
+{
+        if (node.m_num_chn == 0) {
+                node.m_chn = ::expand_state(m_s, m_node_buf, true);
+                node.m_num_chn = m_node_buf.size();
+        }
+}
+
+void MCGameTree::sample_at(const GameNode& node, unsigned depth,
+                           unsigned sample_count, Sample& sample)
+{
+        ::expand_state(m_s, m_node_buf, false);
+        m_order_buf.resize(m_node_buf.size());
+        for (unsigned short i = 0; i < m_node_buf.size(); i ++)
+                m_order_buf[i] = i;
+
+        int player = (depth & 1) == 1 ? State::AI_PIECE : State::HUMAN_PIECE;
+
+        const unsigned MAX_LOOKAHEAD = m_node_buf.size();
+        Move* moves = new Move [MAX_LOOKAHEAD];
+        sample.n_wins = 0;
+        sample.n_losses = 0;
+        sample.n_sims = sample_count;
+
+        for (unsigned i = 0; i < sample_count; i ++) {
+                std::random_shuffle(m_order_buf.begin(), m_order_buf.end());
 
                 unsigned j;
-                for (j = 0; j < max_steps; j ++) {
+                for (j = 0; j < MAX_LOOKAHEAD; ) {
                         // Roll out.
-                        unsigned who = (j & 1) == 0 ? State::AI_PIECE : State::HUMAN_PIECE;
-                        const AvailableAction& chosen = action_buf[order_buf[j]];
-                        const Move& chosen_move = Move(chosen.x, chosen.y);
-                        k.set_move(chosen.x, chosen.y, who);
-                        if (k.is_goal_for(chosen_move, who)) {
-                                if (who == State::AI_PIECE)
-                                        n_wins ++;
+                        int cur_player = (j & 1) == 0 ? player : opponent_of(player);
+                        const Move& chosen = m_node_buf[m_order_buf[j]];
+                        m_s.set_move(chosen.x, chosen.y, cur_player);
+                        moves[j ++] = chosen;
+                        if (m_s.is_goal_for(chosen, cur_player)) {
+                                if (cur_player == State::AI_PIECE)
+                                        sample.n_wins ++;
+                                else
+                                        sample.n_losses ++;
                                 break;
                         }
-                        moves[j] = chosen_move;
                 }
 
                 // Clear previous playout.
                 for (unsigned l = 0; l < j; l ++) {
-                        k.set_move(moves[l].x, moves[l].y, State::NO_PIECE);
+                        m_s.set_move(moves[l].x, moves[l].y, State::NO_PIECE);
+                }
+        }
+
+        delete [] moves;
+}
+
+void MCGameTree::back_propagate(const Sample& sample, GameNode& node, unsigned depth)
+{
+        node.m_sims += sample.n_sims;
+        node.m_wins += sample.n_wins;
+
+        if (depth >= 1) {
+                for (int i = (int) depth - 2; i >= 0; i -= 2) {
+                        m_path[i]->m_wins += sample.n_wins;
+                        m_path[i]->m_sims += sample.n_sims;
+                }
+
+                for (int i = (int) depth - 1; i >= 0; i -= 2) {
+                        m_path[i]->m_wins += sample.n_losses;
+                        m_path[i]->m_sims += sample.n_sims;
                 }
         }
 }
 
-static AvailableAction* max_action(std::vector<AvailableAction>& actions)
+float MCGameTree::win_rate() const
 {
-        unsigned max_i = 0;
-        for (unsigned i = 1; i < actions.size(); i ++) {
-                if (actions[i].q > actions[max_i].q)
-                        max_i = i;
-        }
-        return &actions[max_i];
+        return m_path[0]->m_wins/(float) m_path[0]->m_sims;
 }
 
-static const AvailableAction& best_action(const std::vector<AvailableAction>& actions)
+static const GameNode& best_action(const std::vector<GameNode>& actions)
 {
         unsigned max_i = 0;
         for (unsigned i = 1; i < actions.size(); i ++) {
-                if (actions[i].i_sims > actions[max_i].i_sims)
+                if (actions[i].m_sims > actions[max_i].m_sims)
                         max_i = i;
         }
         return actions[max_i];
 }
 
+static void search(unsigned sample_count, MCGameTree& mcgt)
+{
+        unsigned depth;
+        GameNode& selected = mcgt.get_optimal_node(depth);
+        mcgt.expand_node(selected, depth);
+        MCGameTree::Sample sample;
+        mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
+        mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
+        selected.m_i_chn ++;
+}
+
 void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Move& m) const
 {
-        const unsigned MAX_DEPTH = 8;
-        const unsigned SIM_DEPTH = (s.k + 1)*2;
-        const unsigned MAX_SIMS = 128;
-        const unsigned SUB_CYCLE_SIZE = 65536;
+        unsigned sample_count = quality*100;
+        const unsigned SUB_CYCLES = 200;
 
-        State& k = const_cast<State&>(s);
         StopWatch watch;
-        watch.begin(s.deadline);
+        watch.begin(20000);
 
-        std::vector<AvailableAction> action_buf;
-        std::vector<unsigned short> order_buf;
-        std::vector<AvailableAction> path_actions[MAX_DEPTH];
-        AvailableAction* last_move[MAX_DEPTH] = {nullptr};
-
-        // Insert and select root.
-        path_actions[0].push_back(AvailableAction(-1, -1));
-        unsigned depth = 0;
-        unsigned deepest = 0;
-        AvailableAction* selected = &path_actions[0][0];
-        last_move[0] = selected;
-
+        MCGameTree mcgt(s, 8);
         while (watch.check_point() > 0) {
-                for (unsigned i = 0; i < SUB_CYCLE_SIZE; i ++) {
-                        // Find a node that has the best Q(i) at each level.
-                        // Proceed to the next level if the best move is the same as the last move.
-                        for (unsigned d = 1; d <= depth; d ++) {
-                                selected = ::max_action(path_actions[d]);
-                                if (selected != last_move[d]) {
-                                        // Needed to clear old branch and switch to new branch at this level.
-                                        for (unsigned p = d; p <= depth; p ++) {
-                                                k.set_move(last_move[p]->x, last_move[p]->y, State::NO_PIECE);
-                                        }
-                                        depth = d;
-                                        last_move[d] = selected;
-                                        goto L_CONFLICTED;
-                                }
-                        }
-// L_NO_CONFLICT:
-                        selected = ::max_action(path_actions[++ depth]);
-                        last_move[depth] = selected;
-L_CONFLICTED:
-
-                        unsigned who = (depth & 1) == 0 ? State::AI_PIECE : State::HUMAN_PIECE;
-                        if (selected->x != 0XFF)
-                                k.set_move(selected->x, selected->y, who);
-                        last_move[depth] = selected;
-                        deepest = std::max(deepest, depth);
-
-                        // Expand the selected node.
-                        ::build_all_actions(s, path_actions[depth + 1]);
-
-                        // Simulate over all the children.
-                        unsigned n_child_sims = 0;
-                        unsigned n_child_wins = 0;
-                        for (AvailableAction action: path_actions[depth + 1]) {
-                                k.set_move(action.x, action.y, who);
-                                unsigned i_wins;
-                                unsigned sim_steps = MAX_SIMS >> depth;
-
-                                ::simulate(s, action_buf, order_buf, sim_steps, SIM_DEPTH, i_wins);
-                                k.set_move(action.x, action.y, State::NO_PIECE);
-
-                                action.i_sims += sim_steps;
-                                action.i_wins += i_wins;
-
-                                n_child_sims += sim_steps;
-                                n_child_wins += i_wins;
-
-                                action.qi(last_move[depth]->i_sims);
-                        }
-
-                        // Back propagate all the way to root.
-                        for (unsigned i = 0; i <= depth; i ++) {
-                                last_move[i]->i_sims += n_child_sims;
-                                last_move[i]->i_wins += n_child_wins;
-                        }
-                        for (unsigned i = 1; i <= depth; i ++) {
-                                last_move[i]->qi(last_move[i - 1]->i_sims);
-                        }
+                for (unsigned i = 0; i < SUB_CYCLES; i ++) {
+                        ::search(sample_count, mcgt);
                 }
-                // Select move.
-                const AvailableAction& best = ::best_action(path_actions[1]);
-                m.set(best.x, best.y);
-
-                std::cout << "Deepest lookahead " << deepest << std::endl
-                          << "Number of simulations " << last_move[0]->i_sims << std::endl
-                          << "Win rate " << last_move[0]->i_wins/last_move[0]->i_sims << std::endl
-                          << "Move selected " << m << std::endl;
-        }
-
-        // Reset the board.
-        for (unsigned p = 0; p <= depth; p ++) {
-                k.set_move(last_move[p]->x, last_move[p]->y, State::NO_PIECE);
+                const GameNode& best = mcgt.get_best_node();
+                m.set(best.m_x, best.m_y);
+                std::cout << mcgt << ", Current move " << m << std::endl;
         }
 }
 

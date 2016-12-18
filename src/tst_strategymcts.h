@@ -20,7 +20,7 @@ static int tst_strategymcts()
 
                 State copy = states[i];
                 strategy.load_state(states[i]);
-                strategy.make_move(states[i], 10, 5000, m);
+                strategy.make_move(states[i], 10, 200, m);
 
                 std::cout << "Move made " << m << std::endl;
                 std::cout << "State is unchanged " << (copy == states[i]) << std::endl;
