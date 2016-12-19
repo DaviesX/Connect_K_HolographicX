@@ -116,7 +116,10 @@ private:
 
 std::ostream& operator<< (std::ostream& os, const MCGameTree& mcgt)
 {
-        os << "E{X} = " << mcgt.win_rate() << ", PL = " << mcgt.m_path_length;
+        os << "E{X} = " << mcgt.win_rate() << ", PL = " << mcgt.m_path_length << ", P = ";
+        for (unsigned i = 1; i < mcgt.m_path_length - 1; i ++)
+                os << Move(mcgt.m_path[i]->m_x, mcgt.m_path[i]->m_y) << ", ";
+        os << Move(mcgt.m_path[mcgt.m_path_length - 1]->m_x, mcgt.m_path[mcgt.m_path_length - 1]->m_y);
         return os;
 }
 
@@ -201,6 +204,10 @@ GameNode& MCGameTree::get_best_node()
 
 void MCGameTree::expand_node(GameNode& node, unsigned depth)
 {
+        if (node.m_sims > 0 && node.m_wins >= node.m_sims) {
+                // No children can be made at a goal state.
+                return;
+        }
         if (node.m_num_chn == 0) {
                 node.m_chn = ::expand_state(m_s, m_node_buf, true);
                 node.m_num_chn = m_node_buf.size();
@@ -283,7 +290,7 @@ void MCGameTree::back_propagate(const Sample& sample, GameNode& node, unsigned d
 
 float MCGameTree::win_rate() const
 {
-        return m_path[0]->m_wins/(float) m_path[0]->m_sims;
+        return 1.0f - m_path[0]->m_wins/(float) m_path[0]->m_sims;
 }
 
 static const GameNode& best_action(const std::vector<GameNode>& actions)
@@ -301,6 +308,7 @@ static void search(unsigned sample_count, MCGameTree& mcgt)
         unsigned depth;
         GameNode& selected = mcgt.switch_to_optimal_node(depth);
         mcgt.expand_node(selected, depth);
+
         MCGameTree::Sample sample;
         if (depth == 0) {
                 while (selected.m_i_chn < selected.m_num_chn) {
@@ -309,9 +317,15 @@ static void search(unsigned sample_count, MCGameTree& mcgt)
                         selected.m_i_chn ++;
                 }
         } else {
-                mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
-                mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
-                selected.m_i_chn ++;
+                if (selected.m_num_chn == 0) {
+                        // Make more samples at this goal state.
+                        mcgt.sample_at(selected, depth, sample_count, sample);
+                        mcgt.back_propagate(sample, selected, depth);
+                } else {
+                        mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
+                        mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
+                        selected.m_i_chn ++;
+                }
         }
 }
 
