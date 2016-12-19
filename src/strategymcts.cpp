@@ -94,13 +94,15 @@ public:
         MCGameTree(const State& s, unsigned max_depth);
         ~MCGameTree();
         GameNode&                       switch_to_optimal_node(unsigned& depth);
-        GameNode&                       get_best_node();
+        GameNode&                       get_best_node() const;
+        GameNode&                       get_optimal_node() const;
         void                            expand_node(GameNode& node, unsigned depth);
         void                            sample_at(const GameNode& node, unsigned depth,
                                                   unsigned sample_count, Sample& sample);
         void                            back_propagate(const Sample& samples, GameNode& nodes, unsigned depth);
 
         float                           win_rate() const;
+        unsigned                        pl() const;
 private:
         State                           m_s;
         GameNode                        m_root;
@@ -183,7 +185,7 @@ GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth)
         }
 }
 
-GameNode& MCGameTree::get_best_node()
+GameNode& MCGameTree::get_best_node() const
 {
         int i_best = -1;
         unsigned most = 0;
@@ -196,6 +198,11 @@ GameNode& MCGameTree::get_best_node()
         if (i_best == -1)
                 throw std::string("No children from root");
         return m_path[0]->m_chn[i_best];
+}
+
+GameNode& MCGameTree::get_optimal_node() const
+{
+        return *m_path[1];
 }
 
 void MCGameTree::expand_node(GameNode& node, unsigned depth)
@@ -293,6 +300,11 @@ float MCGameTree::win_rate() const
         return 1.0f - m_path[0]->m_wins/(float) m_path[0]->m_sims;
 }
 
+unsigned MCGameTree::pl() const
+{
+        return m_path_length;
+}
+
 static const GameNode& best_action(const std::vector<GameNode>& actions)
 {
         unsigned max_i = 0;
@@ -333,18 +345,19 @@ static void search(unsigned sample_count, MCGameTree& mcgt)
 
 void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Move& m) const
 {
-        unsigned sample_count = 1500;
-        const unsigned SUB_CYCLES = 200;
+        unsigned sample_count = 500;
+        const unsigned SUB_CYCLES = 500;
+        const unsigned DEPTH_LIMIT = 8;
 
+        MCGameTree mcgt(s, DEPTH_LIMIT);
         StopWatch watch;
-        watch.begin(60000);
+        //watch.begin(60000);
 
-        MCGameTree mcgt(s, 8);
-        while (watch.check_point() > 0) {
+        while (mcgt.pl() < DEPTH_LIMIT) {
                 for (unsigned i = 0; i < SUB_CYCLES; i ++) {
                         ::search(sample_count, mcgt);
                 }
-                const GameNode& best = mcgt.get_best_node();
+                const GameNode& best = mcgt.get_optimal_node();
                 m.set(best.m_x, best.m_y);
                 std::cout << mcgt << ", Current " << m << std::endl;
         }
