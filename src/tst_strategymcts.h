@@ -10,7 +10,7 @@
 static int tst_strategymcts()
 {
         std::vector<State> states;
-        states.push_back(::tst_state_create_sample4());
+        states.push_back(::tst_state_create_sample6());
         StrategyMCTS strategy;
 
         Move m;
@@ -20,7 +20,7 @@ static int tst_strategymcts()
 
                 State copy = states[i];
                 strategy.load_state(states[i]);
-                strategy.make_move(states[i], 10, 200, m);
+                strategy.make_move(states[i], 2, 20000, m);
 
                 std::cout << "Move made " << m << std::endl;
                 std::cout << "State is unchanged " << (copy == states[i]) << std::endl;

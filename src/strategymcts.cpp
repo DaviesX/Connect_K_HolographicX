@@ -21,10 +21,7 @@ struct GameNode
 
         float qi(unsigned n_sims) const
         {
-                if (m_sims == 0)
-                        return 0.0f;
-                else
-                        return (float) m_wins/m_sims + sqrt(2.0f*log(n_sims)/(float) m_sims);
+                return (float) m_wins/m_sims + sqrt(2.0f*log(n_sims)/(float) m_sims);
         }
 
         union {
@@ -91,7 +88,7 @@ public:
         {
                 unsigned        n_sims;
                 unsigned        n_wins;
-                unsigned        n_losses;
+                //unsigned        n_losses;
         };
 
         MCGameTree(const State& s, unsigned max_depth);
@@ -116,10 +113,9 @@ private:
 
 std::ostream& operator<< (std::ostream& os, const MCGameTree& mcgt)
 {
-        os << "E{X} = " << mcgt.win_rate() << ", PL = " << mcgt.m_path_length << ", P = ";
-        for (unsigned i = 1; i < mcgt.m_path_length - 1; i ++)
+        os << "T = " << mcgt.m_path[0]->m_sims << ", E{X} = " << mcgt.win_rate() << ", PL = " << mcgt.m_path_length << ", ";
+        for (unsigned i = 1; i < mcgt.m_path_length; i ++)
                 os << Move(mcgt.m_path[i]->m_x, mcgt.m_path[i]->m_y) << ", ";
-        os << Move(mcgt.m_path[mcgt.m_path_length - 1]->m_x, mcgt.m_path[mcgt.m_path_length - 1]->m_y);
         return os;
 }
 
@@ -217,55 +213,60 @@ void MCGameTree::expand_node(GameNode& node, unsigned depth)
 void MCGameTree::sample_at(const GameNode& node, unsigned depth,
                            unsigned sample_count, Sample& sample)
 {
-        ::expand_state(m_s, m_node_buf, false);
-        m_order_buf.resize(m_node_buf.size());
-        for (unsigned short i = 0; i < m_node_buf.size(); i ++)
-                m_order_buf[i] = i;
-
-        int player = (depth & 1) == 1 ? State::AI_PIECE : State::HUMAN_PIECE;
-
-        if (m_s.is_goal_for(Move(node.m_x, node.m_y), player)) {
-                sample.n_sims = sample_count;
-                if (player == State::AI_PIECE) {
-                        sample.n_wins = sample_count;
-                        sample.n_losses = 0;
-                } else {
-                        sample.n_losses = sample_count;
-                        sample.n_wins = 0;
-                }
+        if (node.m_sims > 0 && node.m_wins >= node.m_sims) {
+                sample.n_sims = sample_count*(m_s.num_left - 1);
+                sample.n_wins = sample_count*(m_s.num_left - 1);
                 return ;
         }
 
-        const unsigned MAX_LOOKAHEAD = std::min(m_node_buf.size(), 64UL);
+        int player = (depth & 1) == 1 ? State::AI_PIECE : State::HUMAN_PIECE;
+        m_s.set_move(node.m_x, node.m_y, player);
+        if (m_s.is_goal_for(Move(node.m_x, node.m_y), player)) {
+                sample.n_sims = sample_count;
+                sample.n_wins = sample_count;
+                m_s.set_move(node.m_x, node.m_y, State::NO_PIECE);
+                return ;
+        }
+
+        ::expand_state(m_s, m_node_buf, false);
+
+        const unsigned MAX_LOOKAHEAD = m_node_buf.size();
         Move* moves = new Move [MAX_LOOKAHEAD];
         sample.n_wins = 0;
-        sample.n_losses = 0;
         sample.n_sims = sample_count;
 
         for (unsigned i = 0; i < sample_count; i ++) {
-                std::random_shuffle(m_order_buf.begin(), m_order_buf.end());
+                std::random_shuffle(m_node_buf.begin(), m_node_buf.end());
 
                 unsigned j;
                 for (j = 0; j < MAX_LOOKAHEAD; ) {
                         // Roll out.
-                        int cur_player = (j & 1) == 0 ? player : opponent_of(player);
-                        const Move& chosen = m_node_buf[m_order_buf[j]];
+                        int cur_player = (j & 1) == 0 ? opponent_of(player) : player;
+                        const Move& chosen = m_node_buf[j];
                         m_s.set_move(chosen.x, chosen.y, cur_player);
-                        moves[j ++] = chosen;
+                        moves[j] = chosen;
                         if (m_s.is_goal_for(chosen, cur_player)) {
-                                if (cur_player == State::AI_PIECE)
+                                if (cur_player == player)
                                         sample.n_wins ++;
-                                else
-                                        sample.n_losses ++;
                                 break;
                         }
+                        j ++;
+                }
+                if (j == MAX_LOOKAHEAD) {
+                        // Break the tie.
+                        unsigned v = std::rand();
+                        if ((v & 1) == 0)
+                                sample.n_wins ++;
+                        j --;
                 }
 
                 // Clear previous playout.
-                for (unsigned l = 0; l < j; l ++) {
+                for (unsigned l = 0; l <= j; l ++) {
                         m_s.set_move(moves[l].x, moves[l].y, State::NO_PIECE);
                 }
         }
+
+        m_s.set_move(node.m_x, node.m_y, State::NO_PIECE);
 
         delete [] moves;
 }
@@ -282,7 +283,6 @@ void MCGameTree::back_propagate(const Sample& sample, GameNode& node, unsigned d
                 }
 
                 for (int i = (int) depth - 1; i >= 0; i -= 2) {
-                        m_path[i]->m_wins += sample.n_losses;
                         m_path[i]->m_sims += sample.n_sims;
                 }
         }
@@ -321,21 +321,23 @@ static void search(unsigned sample_count, MCGameTree& mcgt)
                         // Make more samples at this goal state.
                         mcgt.sample_at(selected, depth, sample_count, sample);
                         mcgt.back_propagate(sample, selected, depth);
+                        return ;
                 } else {
                         mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
                         mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
-                        selected.m_i_chn ++;
+                        if (sample.n_wins < sample.n_sims)
+                                selected.m_i_chn ++;
                 }
         }
 }
 
 void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Move& m) const
 {
-        unsigned sample_count = quality*100;
+        unsigned sample_count = 1500;
         const unsigned SUB_CYCLES = 200;
 
         StopWatch watch;
-        watch.begin(20000);
+        watch.begin(60000);
 
         MCGameTree mcgt(s, 8);
         while (watch.check_point() > 0) {
@@ -344,7 +346,7 @@ void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Mo
                 }
                 const GameNode& best = mcgt.get_best_node();
                 m.set(best.m_x, best.m_y);
-                std::cout << mcgt << ", Current move " << m << std::endl;
+                std::cout << mcgt << ", Current " << m << std::endl;
         }
 }
 
