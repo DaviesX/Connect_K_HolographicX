@@ -68,7 +68,7 @@ static GameNode* expand_state(const State& s, std::vector<Move>& buf, bool to_no
                 }
         }
 
-        if (to_nodes) {
+        if (to_nodes && !buf.empty()) {
                 GameNode* nodes = new GameNode [buf.size()];
                 for (unsigned i = 0; i < buf.size(); i ++) {
                         nodes[i].m_x = buf[i].x;
@@ -96,7 +96,7 @@ public:
 
         MCGameTree(const State& s, unsigned max_depth);
         ~MCGameTree();
-        GameNode&                       get_optimal_node(unsigned& depth);
+        GameNode&                       switch_to_optimal_node(unsigned& depth);
         GameNode&                       get_best_node();
         void                            expand_node(GameNode& node, unsigned depth);
         void                            sample_at(const GameNode& node, unsigned depth,
@@ -116,7 +116,7 @@ private:
 
 std::ostream& operator<< (std::ostream& os, const MCGameTree& mcgt)
 {
-        os << "Win rate " << mcgt.win_rate();
+        os << "E{X} = " << mcgt.win_rate() << ", PL = " << mcgt.m_path_length;
         return os;
 }
 
@@ -144,7 +144,7 @@ MCGameTree::~MCGameTree()
         MCGameTree_free(&m_root);
 }
 
-GameNode& MCGameTree::get_optimal_node(unsigned& depth)
+GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth)
 {
         GameNode* node = &m_root;
         depth = 0;
@@ -161,6 +161,8 @@ GameNode& MCGameTree::get_optimal_node(unsigned& depth)
                         m_s.set_move(node->m_x, node->m_y, ((depth & 1)) == 1 ? State::AI_PIECE : State::HUMAN_PIECE);
                 m_path[m_path_length ++] = node;
                 if (depth >= m_max_depth - 1) {
+                        if (node->m_i_chn == node->m_num_chn)
+                                node->m_i_chn = 0;
                         return *node;
                 } else if (node->m_i_chn < node->m_num_chn) {
                         return *node;
@@ -215,7 +217,19 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
 
         int player = (depth & 1) == 1 ? State::AI_PIECE : State::HUMAN_PIECE;
 
-        const unsigned MAX_LOOKAHEAD = m_node_buf.size();
+        if (m_s.is_goal_for(Move(node.m_x, node.m_y), player)) {
+                sample.n_sims = sample_count;
+                if (player == State::AI_PIECE) {
+                        sample.n_wins = sample_count;
+                        sample.n_losses = 0;
+                } else {
+                        sample.n_losses = sample_count;
+                        sample.n_wins = 0;
+                }
+                return ;
+        }
+
+        const unsigned MAX_LOOKAHEAD = std::min(m_node_buf.size(), 64UL);
         Move* moves = new Move [MAX_LOOKAHEAD];
         sample.n_wins = 0;
         sample.n_losses = 0;
@@ -285,12 +299,20 @@ static const GameNode& best_action(const std::vector<GameNode>& actions)
 static void search(unsigned sample_count, MCGameTree& mcgt)
 {
         unsigned depth;
-        GameNode& selected = mcgt.get_optimal_node(depth);
+        GameNode& selected = mcgt.switch_to_optimal_node(depth);
         mcgt.expand_node(selected, depth);
         MCGameTree::Sample sample;
-        mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
-        mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
-        selected.m_i_chn ++;
+        if (depth == 0) {
+                while (selected.m_i_chn < selected.m_num_chn) {
+                        mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
+                        mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
+                        selected.m_i_chn ++;
+                }
+        } else {
+                mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
+                mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
+                selected.m_i_chn ++;
+        }
 }
 
 void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Move& m) const
