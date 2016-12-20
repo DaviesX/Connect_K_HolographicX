@@ -19,12 +19,13 @@ struct GameNode
         {
         }
 
-        float qi(unsigned n_sims, unsigned wb, unsigned nb) const
+        float qi(unsigned n_sims, unsigned wb, unsigned nb, unsigned step_size) const
         {
-                const float b = 1.0f;
-                float beta = (float) nb/(m_sims + nb + 4.0f*b*b*m_sims*nb);
-                //float beta = 0.0f;
-                return (1.0f - beta)*(float) m_wins/m_sims + beta*(float) wb/nb + sqrt(2.0f*log(n_sims)/(float) m_sims);
+                const float b = 0.1f;
+                float beta = (float) nb/(m_sims + nb + 4.0f*b*b*m_sims*(nb/step_size));
+                return (1.0f - beta)*(float) m_wins/m_sims + beta*(float) wb/nb +
+                       sqrt(2.0f*log(n_sims)/(float) m_sims);
+                //return (float) m_wins/m_sims + sqrt(2.0f*log(n_sims)/(float) m_sims);
         }
 
         union {
@@ -91,12 +92,11 @@ public:
         {
                 unsigned        n_sims;
                 unsigned        n_wins;
-                //unsigned        n_losses;
         };
 
         MCGameTree(const State& s, unsigned max_depth);
         ~MCGameTree();
-        GameNode&                       switch_to_optimal_node(unsigned& depth);
+        GameNode&                       switch_to_optimal_node(unsigned& depth, unsigned step_size);
         GameNode&                       get_best_node() const;
         GameNode&                       get_optimal_node() const;
         void                            expand_node(GameNode& node, unsigned depth);
@@ -107,6 +107,7 @@ public:
 
         float                           win_rate() const;
         unsigned                        pl() const;
+        unsigned                        max_depth() const;
 private:
         State                           m_s;
         Sample*                         m_nw;
@@ -127,9 +128,9 @@ std::ostream& operator<< (std::ostream& os, const MCGameTree& mcgt)
 }
 
 MCGameTree::MCGameTree(const State& s, unsigned max_depth):
-        m_s(s), m_max_depth(max_depth)
+        m_s(s), m_max_depth(std::min(s.num_left, max_depth))
 {
-        m_path = new GameNode* [max_depth];
+        m_path = new GameNode* [m_max_depth + 1];
 
         m_nw = new Sample [m_s.num_cols*m_s.num_rows];
         for (unsigned i = 0; i < m_s.num_cols*m_s.num_rows; i ++) {
@@ -157,7 +158,7 @@ MCGameTree::~MCGameTree()
         MCGameTree_free(&m_root);
 }
 
-GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth)
+GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth, unsigned step_size)
 {
         GameNode* node = &m_root;
         depth = 0;
@@ -173,7 +174,7 @@ GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth)
                 if (node->key != 0xFFFF)
                         m_s.set_move(node->m_x, node->m_y, ((depth & 1)) == 1 ? State::AI_PIECE : State::HUMAN_PIECE);
                 m_path[m_path_length ++] = node;
-                if (depth >= m_max_depth - 1) {
+                if (depth >= m_max_depth) {
                         if (node->m_i_chn == node->m_num_chn)
                                 node->m_i_chn = 0;
                         return *node;
@@ -186,7 +187,7 @@ GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth)
                         float opti_qi = 0;
                         for (unsigned i = 0; i < node->m_num_chn; i ++) {
                                 Sample& rave = get_rave(node->m_chn[i].m_x, node->m_chn[i].m_y);
-                                float qi = node->m_chn[i].qi(node->m_sims, rave.n_wins, rave.n_sims);
+                                float qi = node->m_chn[i].qi(node->m_sims, rave.n_wins, rave.n_sims, step_size);
                                 if (qi > opti_qi) {
                                         opti_qi = qi;
                                         i_opti = i;
@@ -256,6 +257,13 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
         ::expand_state(m_s, m_node_buf, false);
 
         const unsigned MAX_LOOKAHEAD = m_node_buf.size();
+        if (MAX_LOOKAHEAD == 0) {
+                // Nothing to sample.
+                sample.n_sims = sample_count;
+                sample.n_wins = sample_count;
+                return ;
+        }
+
         Move* moves = new Move [MAX_LOOKAHEAD];
         sample.n_wins = 0;
         sample.n_sims = sample_count;
@@ -336,6 +344,11 @@ unsigned MCGameTree::pl() const
         return m_path_length;
 }
 
+unsigned MCGameTree::max_depth() const
+{
+        return m_max_depth;
+}
+
 static const GameNode& best_action(const std::vector<GameNode>& actions)
 {
         unsigned max_i = 0;
@@ -349,7 +362,7 @@ static const GameNode& best_action(const std::vector<GameNode>& actions)
 static void search(unsigned sample_count, MCGameTree& mcgt)
 {
         unsigned depth;
-        GameNode& selected = mcgt.switch_to_optimal_node(depth);
+        GameNode& selected = mcgt.switch_to_optimal_node(depth, sample_count);
         mcgt.expand_node(selected, depth);
 
         MCGameTree::Sample sample;
@@ -383,7 +396,7 @@ void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Mo
         StopWatch watch;
         //watch.begin(60000);
 
-        while (mcgt.pl() < DEPTH_LIMIT) {
+        while (mcgt.pl() < mcgt.max_depth()) {
                 for (unsigned i = 0; i < SUB_CYCLES; i ++) {
                         ::search(sample_count, mcgt);
                 }
