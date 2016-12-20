@@ -19,9 +19,12 @@ struct GameNode
         {
         }
 
-        float qi(unsigned n_sims) const
+        float qi(unsigned n_sims, unsigned wb, unsigned nb) const
         {
-                return (float) m_wins/m_sims + sqrt(2.0f*log(n_sims)/(float) m_sims);
+                const float b = 1.0f;
+                float beta = (float) nb/(m_sims + nb + 4.0f*b*b*m_sims*nb);
+                //float beta = 0.0f;
+                return (1.0f - beta)*(float) m_wins/m_sims + beta*(float) wb/nb + sqrt(2.0f*log(n_sims)/(float) m_sims);
         }
 
         union {
@@ -100,11 +103,13 @@ public:
         void                            sample_at(const GameNode& node, unsigned depth,
                                                   unsigned sample_count, Sample& sample);
         void                            back_propagate(const Sample& samples, GameNode& nodes, unsigned depth);
+        Sample&                         get_rave(unsigned x, unsigned y);
 
         float                           win_rate() const;
         unsigned                        pl() const;
 private:
         State                           m_s;
+        Sample*                         m_nw;
         GameNode                        m_root;
         GameNode**                      m_path;
         unsigned                        m_path_length = 0;
@@ -126,6 +131,12 @@ MCGameTree::MCGameTree(const State& s, unsigned max_depth):
 {
         m_path = new GameNode* [max_depth];
 
+        m_nw = new Sample [m_s.num_cols*m_s.num_rows];
+        for (unsigned i = 0; i < m_s.num_cols*m_s.num_rows; i ++) {
+                m_nw[i].n_sims = 0;
+                m_nw[i].n_wins = 0;
+        }
+
         m_node_buf.reserve(s.num_left);
         m_order_buf.reserve(s.num_left);
 }
@@ -142,6 +153,7 @@ static void MCGameTree_free(GameNode* node)
 MCGameTree::~MCGameTree()
 {
         delete [] m_path;
+        delete [] m_nw;
         MCGameTree_free(&m_root);
 }
 
@@ -173,7 +185,8 @@ GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth)
                         unsigned i_opti = 0;
                         float opti_qi = 0;
                         for (unsigned i = 0; i < node->m_num_chn; i ++) {
-                                float qi = node->m_chn[i].qi(node->m_sims);
+                                Sample& rave = get_rave(node->m_chn[i].m_x, node->m_chn[i].m_y);
+                                float qi = node->m_chn[i].qi(node->m_sims, rave.n_wins, rave.n_sims);
                                 if (qi > opti_qi) {
                                         opti_qi = qi;
                                         i_opti = i;
@@ -221,8 +234,8 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
                            unsigned sample_count, Sample& sample)
 {
         if (node.m_sims > 0 && node.m_wins >= node.m_sims) {
-                sample.n_sims = sample_count*(m_s.num_left - 1);
-                sample.n_wins = sample_count*(m_s.num_left - 1);
+                sample.n_sims = sample_count;
+                sample.n_wins = sample_count;
                 return ;
         }
 
@@ -231,6 +244,11 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
         if (m_s.is_goal_for(Move(node.m_x, node.m_y), player)) {
                 sample.n_sims = sample_count;
                 sample.n_wins = sample_count;
+
+                Sample& rave = get_rave(node.m_x, node.m_y);
+                rave.n_sims += sample_count;
+                rave.n_wins += sample_count;
+
                 m_s.set_move(node.m_x, node.m_y, State::NO_PIECE);
                 return ;
         }
@@ -245,6 +263,7 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
         for (unsigned i = 0; i < sample_count; i ++) {
                 std::random_shuffle(m_node_buf.begin(), m_node_buf.end());
 
+                bool has_won = false;
                 unsigned j;
                 for (j = 0; j < MAX_LOOKAHEAD; ) {
                         // Roll out.
@@ -254,7 +273,7 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
                         moves[j] = chosen;
                         if (m_s.is_goal_for(chosen, cur_player)) {
                                 if (cur_player == player)
-                                        sample.n_wins ++;
+                                        has_won = true;
                                 break;
                         }
                         j ++;
@@ -263,12 +282,19 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
                         // Break the tie.
                         unsigned v = std::rand();
                         if ((v & 1) == 0)
-                                sample.n_wins ++;
+                                has_won = true;
                         j --;
                 }
 
-                // Clear previous playout.
+                if (has_won) {
+                        sample.n_wins ++;
+                        for (unsigned l = 0; l <= j; l ++)
+                                get_rave(moves[l].x, moves[l].y).n_wins;
+                }
+
+                // Update RAVE statistics and clear previous playout.
                 for (unsigned l = 0; l <= j; l ++) {
+                        get_rave(moves[l].x, moves[l].y).n_sims ++;
                         m_s.set_move(moves[l].x, moves[l].y, State::NO_PIECE);
                 }
         }
@@ -298,6 +324,11 @@ void MCGameTree::back_propagate(const Sample& sample, GameNode& node, unsigned d
 float MCGameTree::win_rate() const
 {
         return 1.0f - m_path[0]->m_wins/(float) m_path[0]->m_sims;
+}
+
+MCGameTree::Sample& MCGameTree::get_rave(unsigned x, unsigned y)
+{
+        return m_nw[x + y*m_s.num_cols];
 }
 
 unsigned MCGameTree::pl() const
@@ -337,8 +368,7 @@ static void search(unsigned sample_count, MCGameTree& mcgt)
                 } else {
                         mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
                         mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
-                        if (sample.n_wins < sample.n_sims)
-                                selected.m_i_chn ++;
+                        selected.m_i_chn ++;
                 }
         }
 }
