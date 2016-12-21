@@ -1,6 +1,7 @@
 #include <limits>
 #include <algorithm>
 #include <vector>
+#include <map>
 #include <iostream>
 #include "state.h"
 #include "stopwatch.h"
@@ -19,15 +20,17 @@ struct GameNode
         {
         }
 
-        float qi(unsigned n_sims, unsigned wb, unsigned nb, unsigned step_size) const
+        float qi(unsigned n_sims) const
         {
-                const float b = 0.1f;
-                float beta = (float) nb/(m_sims + nb + 4.0f*b*b*m_sims*(nb/step_size));
-                return (1.0f - beta)*(float) m_wins/m_sims + beta*(float) wb/nb +
-                       sqrt(2.0f*log(n_sims)/(float) m_sims);
-                //return (float) m_wins/m_sims + sqrt(2.0f*log(n_sims)/(float) m_sims);
+                const float b = 0.05f;
+                const float c = 2.0f;
+                float beta = (float) m_rsims/(m_sims + m_rsims + 4.0f*b*b*m_sims*m_rsims);
+                return (1.0f - beta)*(float) m_wins/m_sims + beta*(float) m_rwins/m_rsims +
+                        sqrt(c*log(n_sims)/(float) m_sims);
+                //return (float) m_wins/m_sims + sqrt(c*log(n_sims)/(float) m_sims);
         }
 
+        // Position and key.
         union {
                 struct {
                         unsigned char   m_x;
@@ -35,11 +38,37 @@ struct GameNode
                 };
                 unsigned short  key;
         };
+
+        bool operator < (const GameNode& rhs) const
+        {
+                return key < rhs.key;
+        }
+
+        GameNode* find_child(unsigned short key)
+        {
+                int l = 0, h = m_num_chn - 1;
+                while (l <= h) {
+                        unsigned m = l + (((unsigned) (h - l)) >> 1);
+                        if (key == m_chn[m].key)
+                                return &m_chn[m];
+                        else if (key < m_chn[m].key)
+                                h = m - 1;
+                        else
+                                l = m + 1;
+                }
+                return nullptr;
+        }
+
+        // Childrens are sorted in key order.
         unsigned char   m_num_chn = 0;
         unsigned char   m_i_chn = 0;
         GameNode*       m_chn = nullptr;
-        float           m_wins = 0.0f;
+
+        // Statistics.
+        unsigned        m_wins = 0;
         unsigned        m_sims = 0;
+        unsigned        m_rwins = 0;
+        unsigned        m_rsims =  0;
 };
 
 StrategyMCTS::StrategyMCTS()
@@ -94,29 +123,44 @@ public:
                 unsigned        n_wins;
         };
 
+        struct SmallSample
+        {
+                union {
+                        struct {
+                                unsigned short  n_sims;
+                                unsigned short  n_wins;
+                        };
+                        unsigned        a = 0;
+                };
+        };
+
         MCGameTree(const State& s, unsigned max_depth);
         ~MCGameTree();
         GameNode&                       switch_to_optimal_node(unsigned& depth, unsigned step_size);
         GameNode&                       get_best_node() const;
         GameNode&                       get_optimal_node() const;
         void                            expand_node(GameNode& node, unsigned depth);
-        void                            sample_at(const GameNode& node, unsigned depth,
+        const SmallSample**             sample_at(const GameNode& node, unsigned depth,
                                                   unsigned sample_count, Sample& sample);
-        void                            back_propagate(const Sample& samples, GameNode& nodes, unsigned depth);
-        Sample&                         get_rave(unsigned x, unsigned y);
+        void                            back_propagate(const Sample& sample, const SmallSample** psamples,
+                                                       GameNode& nodes, unsigned depth);
 
+        SmallSample&                    get_rave(unsigned p, unsigned x, unsigned y);
+        const SmallSample&              get_rave(const SmallSample** rave, unsigned p, unsigned x, unsigned y) const;
+        void                            rave_effective_samples(const SmallSample** rave, unsigned p,
+                                                               std::vector<Move>& eff_moves) const;
+        void                            clear_rave();
         float                           win_rate() const;
         unsigned                        pl() const;
         unsigned                        max_depth() const;
 private:
         State                           m_s;
-        Sample*                         m_nw;
         GameNode                        m_root;
         GameNode**                      m_path;
         unsigned                        m_path_length = 0;
         unsigned                        m_max_depth;
         std::vector<Move>               m_node_buf;
-        std::vector<unsigned short>     m_order_buf;
+        SmallSample*                    m_psamp_buf[2];
 };
 
 std::ostream& operator<< (std::ostream& os, const MCGameTree& mcgt)
@@ -132,14 +176,10 @@ MCGameTree::MCGameTree(const State& s, unsigned max_depth):
 {
         m_path = new GameNode* [m_max_depth + 1];
 
-        m_nw = new Sample [m_s.num_cols*m_s.num_rows];
-        for (unsigned i = 0; i < m_s.num_cols*m_s.num_rows; i ++) {
-                m_nw[i].n_sims = 0;
-                m_nw[i].n_wins = 0;
-        }
+        m_psamp_buf[0] = new SmallSample [s.num_cols*s.num_rows];
+        m_psamp_buf[1] = new SmallSample [s.num_cols*s.num_rows];
 
         m_node_buf.reserve(s.num_left);
-        m_order_buf.reserve(s.num_left);
 }
 
 static void MCGameTree_free(GameNode* node)
@@ -154,7 +194,8 @@ static void MCGameTree_free(GameNode* node)
 MCGameTree::~MCGameTree()
 {
         delete [] m_path;
-        delete [] m_nw;
+        delete [] m_psamp_buf[0];
+        delete [] m_psamp_buf[1];
         MCGameTree_free(&m_root);
 }
 
@@ -183,18 +224,17 @@ GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth, unsigned step_size
                 } else if (node->m_num_chn == 0) {
                         return *node;
                 } else {
+                        depth ++;
                         unsigned i_opti = 0;
                         float opti_qi = 0;
                         for (unsigned i = 0; i < node->m_num_chn; i ++) {
-                                Sample& rave = get_rave(node->m_chn[i].m_x, node->m_chn[i].m_y);
-                                float qi = node->m_chn[i].qi(node->m_sims, rave.n_wins, rave.n_sims, step_size);
+                                float qi = node->m_chn[i].qi(node->m_sims);
                                 if (qi > opti_qi) {
                                         opti_qi = qi;
                                         i_opti = i;
                                 }
                         }
                         node = &node->m_chn[i_opti];
-                        depth ++;
                 }
         }
 }
@@ -231,13 +271,19 @@ void MCGameTree::expand_node(GameNode& node, unsigned depth)
         }
 }
 
-void MCGameTree::sample_at(const GameNode& node, unsigned depth,
-                           unsigned sample_count, Sample& sample)
+const MCGameTree::SmallSample** MCGameTree::sample_at(const GameNode& node, unsigned depth,
+                                                      unsigned sample_count, Sample& sample)
 {
+        clear_rave();
+
         if (node.m_sims > 0 && node.m_wins >= node.m_sims) {
                 sample.n_sims = sample_count;
                 sample.n_wins = sample_count;
-                return ;
+
+                SmallSample& rave = get_rave(0, node.m_x, node.m_y);
+                rave.n_sims = sample_count;
+                rave.n_wins = sample_count;
+                return const_cast<const SmallSample**>(m_psamp_buf);
         }
 
         int player = (depth & 1) == 1 ? State::AI_PIECE : State::HUMAN_PIECE;
@@ -246,12 +292,12 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
                 sample.n_sims = sample_count;
                 sample.n_wins = sample_count;
 
-                Sample& rave = get_rave(node.m_x, node.m_y);
-                rave.n_sims += sample_count;
-                rave.n_wins += sample_count;
-
                 m_s.set_move(node.m_x, node.m_y, State::NO_PIECE);
-                return ;
+
+                SmallSample& rave = get_rave(0, node.m_x, node.m_y);
+                rave.n_sims = sample_count;
+                rave.n_wins = sample_count;
+                return const_cast<const SmallSample**>(m_psamp_buf);
         }
 
         ::expand_state(m_s, m_node_buf, false);
@@ -261,7 +307,7 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
                 // Nothing to sample.
                 sample.n_sims = sample_count;
                 sample.n_wins = sample_count;
-                return ;
+                return const_cast<const SmallSample**>(m_psamp_buf);
         }
 
         Move* moves = new Move [MAX_LOOKAHEAD];
@@ -274,7 +320,7 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
                 bool has_won = false;
                 unsigned j;
                 for (j = 0; j < MAX_LOOKAHEAD; ) {
-                        // Roll out.
+                        // Rollout.
                         int cur_player = (j & 1) == 0 ? opponent_of(player) : player;
                         const Move& chosen = m_node_buf[j];
                         m_s.set_move(chosen.x, chosen.y, cur_player);
@@ -296,13 +342,19 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
 
                 if (has_won) {
                         sample.n_wins ++;
-                        for (unsigned l = 0; l <= j; l ++)
-                                get_rave(moves[l].x, moves[l].y).n_wins;
+
+                        // Update RAVE.
+                        get_rave(0, node.m_x, node.m_y).n_wins ++;
+                        for (unsigned l = 1; l <= j; l += 2) {
+                                get_rave(0, moves[l].x, moves[l].y).n_wins ++;
+                        }
                 }
 
-                // Update RAVE statistics and clear previous playout.
+                // Clear previous playout and update RAVE.
+                get_rave(0, node.m_x, node.m_y).n_sims ++;
                 for (unsigned l = 0; l <= j; l ++) {
-                        get_rave(moves[l].x, moves[l].y).n_sims ++;
+                        unsigned p = (l + 1) & 1;
+                        get_rave(p, moves[l].x, moves[l].y).n_sims ++;
                         m_s.set_move(moves[l].x, moves[l].y, State::NO_PIECE);
                 }
         }
@@ -310,33 +362,82 @@ void MCGameTree::sample_at(const GameNode& node, unsigned depth,
         m_s.set_move(node.m_x, node.m_y, State::NO_PIECE);
 
         delete [] moves;
+        return const_cast<const SmallSample**>(m_psamp_buf);
 }
 
-void MCGameTree::back_propagate(const Sample& sample, GameNode& node, unsigned depth)
+void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psamples,
+                                GameNode& node, unsigned depth)
 {
         node.m_sims += sample.n_sims;
         node.m_wins += sample.n_wins;
 
         if (depth >= 1) {
+                rave_effective_samples(psamples, 1, m_node_buf);
                 for (int i = (int) depth - 2; i >= 0; i -= 2) {
+                        // Update stats for current player.
                         m_path[i]->m_wins += sample.n_wins;
                         m_path[i]->m_sims += sample.n_sims;
+
+                        // Update rave stats for opponent.
+                        for (const Move& m: m_node_buf) {
+                                GameNode* oppo = m_path[i]->find_child(m.key);
+                                if (oppo)
+                                        oppo->m_rsims += get_rave(psamples, 1, m.x, m.y).n_sims;
+                        }
                 }
 
+                rave_effective_samples(psamples, 0, m_node_buf);
                 for (int i = (int) depth - 1; i >= 0; i -= 2) {
                         m_path[i]->m_sims += sample.n_sims;
+
+                        // Update rave stats for opponent.
+                        for (const Move& m: m_node_buf) {
+                                GameNode* cur_player = m_path[i]->find_child(m.key);
+                                if (cur_player) {
+                                        const SmallSample rave = get_rave(psamples, 0, m.x, m.y);
+                                        cur_player->m_rsims += rave.n_sims;
+                                        cur_player->m_rwins += rave.n_wins;
+                                }
+                        }
                 }
+        }
+}
+
+const MCGameTree::SmallSample& MCGameTree::get_rave(const SmallSample** rave, unsigned p, unsigned x, unsigned y) const
+{
+        return rave[p][x + y*m_s.num_cols];
+}
+
+MCGameTree::SmallSample& MCGameTree::get_rave(unsigned p, unsigned x, unsigned y)
+{
+        return m_psamp_buf[p][x + y*m_s.num_cols];
+}
+
+void MCGameTree::rave_effective_samples(const SmallSample** rave, unsigned p, std::vector<Move>& eff_moves) const
+{
+        eff_moves.clear();
+
+        for (unsigned y = 0; y < m_s.num_rows; y ++) {
+                for (unsigned x = 0; x < m_s.num_cols; x ++) {
+                        const SmallSample& rsp = get_rave(rave, p, x, y);
+                        if (rsp.n_sims > 0) {
+                                eff_moves.push_back(Move(x, y));
+                        }
+                }
+        }
+}
+
+void MCGameTree::clear_rave()
+{
+        for (unsigned i = 0; i < m_s.num_cols*m_s.num_rows; i ++) {
+                m_psamp_buf[0][i].a = 0;
+                m_psamp_buf[1][i].a = 0;
         }
 }
 
 float MCGameTree::win_rate() const
 {
         return 1.0f - m_path[0]->m_wins/(float) m_path[0]->m_sims;
-}
-
-MCGameTree::Sample& MCGameTree::get_rave(unsigned x, unsigned y)
-{
-        return m_nw[x + y*m_s.num_cols];
 }
 
 unsigned MCGameTree::pl() const
@@ -368,19 +469,22 @@ static void search(unsigned sample_count, MCGameTree& mcgt)
         MCGameTree::Sample sample;
         if (depth == 0) {
                 while (selected.m_i_chn < selected.m_num_chn) {
-                        mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
-                        mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
+                        const MCGameTree::SmallSample** path_samples =
+                                        mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
+                        mcgt.back_propagate(sample, path_samples, selected.m_chn[selected.m_i_chn], depth + 1);
                         selected.m_i_chn ++;
                 }
         } else {
                 if (selected.m_num_chn == 0) {
                         // Make more samples at this goal state.
-                        mcgt.sample_at(selected, depth, sample_count, sample);
-                        mcgt.back_propagate(sample, selected, depth);
+                        const MCGameTree::SmallSample** path_samples =
+                                        mcgt.sample_at(selected, depth, sample_count, sample);
+                        mcgt.back_propagate(sample, path_samples, selected, depth);
                         return ;
                 } else {
-                        mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
-                        mcgt.back_propagate(sample, selected.m_chn[selected.m_i_chn], depth + 1);
+                        const MCGameTree::SmallSample** path_samples =
+                                mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1, sample_count, sample);
+                        mcgt.back_propagate(sample, path_samples, selected.m_chn[selected.m_i_chn], depth + 1);
                         selected.m_i_chn ++;
                 }
         }
@@ -388,6 +492,12 @@ static void search(unsigned sample_count, MCGameTree& mcgt)
 
 void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Move& m) const
 {
+        if (s.last_move.key == 0XFFFF) {
+                // Hard code first move.
+                m.set(s.num_cols/2, s.num_rows/2);
+                return;
+        }
+
         unsigned sample_count = 500;
         const unsigned SUB_CYCLES = 500;
         const unsigned DEPTH_LIMIT = 8;
