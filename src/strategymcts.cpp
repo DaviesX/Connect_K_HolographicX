@@ -39,11 +39,6 @@ struct GameNode
                 unsigned short  key;
         };
 
-        bool operator < (const GameNode& rhs) const
-        {
-                return key < rhs.key;
-        }
-
         GameNode* find_child(unsigned short key)
         {
                 int l = 0, h = m_num_chn - 1;
@@ -280,9 +275,6 @@ const MCGameTree::SmallSample** MCGameTree::sample_at(const GameNode& node, unsi
                 sample.n_sims = sample_count;
                 sample.n_wins = sample_count;
 
-                SmallSample& rave = get_rave(0, node.m_x, node.m_y);
-                rave.n_sims = sample_count;
-                rave.n_wins = sample_count;
                 return const_cast<const SmallSample**>(m_psamp_buf);
         }
 
@@ -293,10 +285,6 @@ const MCGameTree::SmallSample** MCGameTree::sample_at(const GameNode& node, unsi
                 sample.n_wins = sample_count;
 
                 m_s.set_move(node.m_x, node.m_y, State::NO_PIECE);
-
-                SmallSample& rave = get_rave(0, node.m_x, node.m_y);
-                rave.n_sims = sample_count;
-                rave.n_wins = sample_count;
                 return const_cast<const SmallSample**>(m_psamp_buf);
         }
 
@@ -344,14 +332,12 @@ const MCGameTree::SmallSample** MCGameTree::sample_at(const GameNode& node, unsi
                         sample.n_wins ++;
 
                         // Update RAVE.
-                        get_rave(0, node.m_x, node.m_y).n_wins ++;
                         for (unsigned l = 1; l <= j; l += 2) {
                                 get_rave(0, moves[l].x, moves[l].y).n_wins ++;
                         }
                 }
 
                 // Clear previous playout and update RAVE.
-                get_rave(0, node.m_x, node.m_y).n_sims ++;
                 for (unsigned l = 0; l <= j; l ++) {
                         unsigned p = (l + 1) & 1;
                         get_rave(p, moves[l].x, moves[l].y).n_sims ++;
@@ -371,6 +357,9 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
         node.m_sims += sample.n_sims;
         node.m_wins += sample.n_wins;
 
+        node.m_rsims += sample.n_sims;
+        node.m_rwins += sample.n_wins;
+
         if (depth >= 1) {
                 rave_effective_samples(psamples, 1, m_node_buf);
                 for (int i = (int) depth - 2; i >= 0; i -= 2) {
@@ -378,7 +367,10 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
                         m_path[i]->m_wins += sample.n_wins;
                         m_path[i]->m_sims += sample.n_sims;
 
-                        // Update rave stats for opponent.
+                        m_path[i]->m_rwins += sample.n_wins;
+                        m_path[i]->m_rsims += sample.n_sims;
+
+                        // Update rave stats for the opponent.
                         for (const Move& m: m_node_buf) {
                                 GameNode* oppo = m_path[i]->find_child(m.key);
                                 if (oppo)
@@ -388,13 +380,15 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
 
                 rave_effective_samples(psamples, 0, m_node_buf);
                 for (int i = (int) depth - 1; i >= 0; i -= 2) {
+                        // Update stats for the opponent.
                         m_path[i]->m_sims += sample.n_sims;
+                        m_path[i]->m_rsims += sample.n_sims;
 
-                        // Update rave stats for opponent.
+                        // Update rave stats for current player.
                         for (const Move& m: m_node_buf) {
                                 GameNode* cur_player = m_path[i]->find_child(m.key);
                                 if (cur_player) {
-                                        const SmallSample rave = get_rave(psamples, 0, m.x, m.y);
+                                        const SmallSample& rave = get_rave(psamples, 0, m.x, m.y);
                                         cur_player->m_rsims += rave.n_sims;
                                         cur_player->m_rwins += rave.n_wins;
                                 }
@@ -504,9 +498,9 @@ void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Mo
 
         MCGameTree mcgt(s, DEPTH_LIMIT);
         StopWatch watch;
-        //watch.begin(60000);
+        watch.begin(10000);
 
-        while (mcgt.pl() < mcgt.max_depth()) {
+        while (watch.check_point() > 0) {
                 for (unsigned i = 0; i < SUB_CYCLES; i ++) {
                         ::search(sample_count, mcgt);
                 }
