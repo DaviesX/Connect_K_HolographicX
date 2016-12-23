@@ -20,7 +20,8 @@ public:
         void set(unsigned char x, unsigned char y);
 
         Move& operator= (const Move& rhs);
-        bool operator== (const Move& rhs);
+        bool operator== (const Move& rhs) const;
+        bool operator < (const Move& rhs) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const Move& move);

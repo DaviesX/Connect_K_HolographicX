@@ -27,9 +27,14 @@ Move& Move::operator=(const Move& rhs)
         return *this;
 }
 
-bool Move::operator== (const Move& rhs)
+bool Move::operator== (const Move& rhs) const
 {
         return key == rhs.key;
+}
+
+bool Move::operator < (const Move& rhs) const
+{
+        return key < rhs.key;
 }
 
 std::ostream& operator<<(std::ostream& os, const Move& move)

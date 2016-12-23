@@ -209,6 +209,12 @@ static inline State tst_state_create_sample11()
         return s;
 }
 
+static inline State tst_state_create_sample12()
+{
+        State s(9, 7, true, Move(0, 1), 5, 5000);
+        return s;
+}
+
 static inline int tst_state()
 {
         State s = ::tst_state_create_sample();

@@ -22,7 +22,7 @@ struct GameNode
 
         float beta() const
         {
-                const float b = 0.01f;
+                const float b = 100.01f;
                 return (float) m_rsims/(m_sims + m_rsims + 4.0f*b*b*(float) m_sims*(float) m_rsims);
         }
 
@@ -96,6 +96,7 @@ static GameNode* expand_state(const State& s, std::vector<Move>& buf, bool to_no
                                 }
                         }
                 }
+                std::sort(buf.begin(), buf.end());
         }
 
         if (to_nodes && !buf.empty()) {
@@ -391,15 +392,18 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
 
                         for (int j = (int) i - 3; j >= 0; j -= 2) {
                                 GameNode* cur_player = m_path[j]->find_child(m_path[i]->key);
-                                cur_player->m_rsims += sample.n_sims;
-                                cur_player->m_rwins += sample.n_wins;
+                                if (cur_player) {
+                                        cur_player->m_rsims += sample.n_sims;
+                                        cur_player->m_rwins += sample.n_wins;
+                                }
                         }
 
                         // Update rave stats for the opponent.
                         for (const Move& m: m_node_buf) {
                                 GameNode* oppo = m_path[i]->find_child(m.key);
                                 const SmallSample& rave = get_rave(psamples, 1, m.x, m.y);
-                                oppo->m_rsims += rave.n_sims;
+                                if (oppo)
+                                        oppo->m_rsims += rave.n_sims;
                         }
                 }
 
@@ -411,20 +415,25 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
 
                         for (int j = (int) i - 3; j >= 0; j -= 2) {
                                 GameNode* oppo = m_path[j]->find_child(m_path[i]->key);
-                                oppo->m_rsims += sample.n_sims;
+                                if (oppo)
+                                        oppo->m_rsims += sample.n_sims;
                         }
 
                         // Update rave stats for current player.
                         for (const Move& m: m_node_buf) {
                                 GameNode* cur_player = m_path[i]->find_child(m.key);
                                 const SmallSample& rave = get_rave(psamples, 0, m.x, m.y);
-                                cur_player->m_rsims += rave.n_sims;
-                                cur_player->m_rwins += rave.n_wins;
+                                if (cur_player) {
+                                        cur_player->m_rsims += rave.n_sims;
+                                        cur_player->m_rwins += rave.n_wins;
+                                }
                         }
 
                         GameNode* cur_player = m_path[i]->find_child(node.key);
-                        cur_player->m_rsims += sample.n_sims;
-                        cur_player->m_rwins += sample.n_wins;
+                        if (cur_player) {
+                                cur_player->m_rsims += sample.n_sims;
+                                cur_player->m_rwins += sample.n_wins;
+                        }
                 }
         }
 }
