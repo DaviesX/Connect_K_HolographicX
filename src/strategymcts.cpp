@@ -7,6 +7,7 @@
 #include "stopwatch.h"
 #include "strategymcts.h"
 
+#define WITH_RAVE
 
 struct GameNode
 {
@@ -29,10 +30,13 @@ struct GameNode
         float qi(unsigned n_sims) const
         {
                 const float c = 0.25f;
+#ifdef WITH_RAVE
                 float b = beta();
                 return (1.0f - b)*(float) m_wins/m_sims + b*(float) m_rwins/m_rsims +
                         sqrt(c*log(n_sims)/(float) m_sims);
-                //return (float) m_wins/m_sims + sqrt(c*log(n_sims)/(float) m_sims);
+#else
+                return (float) m_wins/m_sims + sqrt(c*log(n_sims)/(float) m_sims);
+#endif
         }
 
         // Position and key.
@@ -353,17 +357,20 @@ const MCGameTree::SmallSample** MCGameTree::sample_at(const GameNode& node, unsi
 
                 if (has_won) {
                         sample.n_wins ++;
-
+#ifdef WITH_RAVE
                         // Update RAVE.
                         for (unsigned l = 1; l <= j; l += 2) {
                                 get_rave(0, moves[l].x, moves[l].y).n_wins ++;
                         }
+#endif
                 }
 
                 // Clear previous playout and update RAVE.
                 for (unsigned l = 0; l <= j; l ++) {
+#ifdef WITH_RAVE
                         unsigned p = (l + 1) & 1;
                         get_rave(p, moves[l].x, moves[l].y).n_sims ++;
+#endif
                         m_s.set_move(moves[l].x, moves[l].y, State::NO_PIECE);
                 }
         }
@@ -381,12 +388,14 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
         node.m_wins += sample.n_wins;
 
         if (depth >= 1) {
+#ifdef WITH_RAVE
                 rave_effective_samples(psamples, 1, m_node_buf);
+#endif
                 for (int i = (int) depth - 2; i >= 0; i -= 2) {
                         // Update stats for current player.
                         m_path[i]->m_wins += sample.n_wins;
                         m_path[i]->m_sims += sample.n_sims;
-
+#ifdef WITH_RAVE
                         m_path[i]->m_rwins += sample.n_wins;
                         m_path[i]->m_rsims += sample.n_sims;
 
@@ -405,14 +414,17 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
                                 if (oppo)
                                         oppo->m_rsims += rave.n_sims;
                         }
+#endif
                 }
-
+#ifdef WITH_RAVE
                 rave_effective_samples(psamples, 0, m_node_buf);
+#endif
                 for (int i = (int) depth - 1; i >= 0; i -= 2) {
                         // Update stats for the opponent.
                         m_path[i]->m_sims += sample.n_sims;
                         m_path[i]->m_rsims += sample.n_sims;
 
+#ifdef WITH_RAVE
                         for (int j = (int) i - 3; j >= 0; j -= 2) {
                                 GameNode* oppo = m_path[j]->find_child(m_path[i]->key);
                                 if (oppo)
@@ -434,6 +446,7 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
                                 cur_player->m_rsims += sample.n_sims;
                                 cur_player->m_rwins += sample.n_wins;
                         }
+#endif
                 }
         }
 }
