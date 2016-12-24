@@ -8,6 +8,7 @@
 #include "strategymcts.h"
 
 #define WITH_RAVE
+//#define TEST
 
 struct GameNode
 {
@@ -23,13 +24,13 @@ struct GameNode
 
         float beta() const
         {
-                const float b = 100.01f;
+                const float b = 0.01f;
                 return (float) m_rsims/(m_sims + m_rsims + 4.0f*b*b*(float) m_sims*(float) m_rsims);
         }
 
         float qi(unsigned n_sims) const
         {
-                const float c = 0.25f;
+                const float c = 2.0f;
 #ifdef WITH_RAVE
                 float b = beta();
                 return (1.0f - b)*(float) m_wins/m_sims + b*(float) m_rwins/m_rsims +
@@ -74,6 +75,12 @@ struct GameNode
         unsigned        m_rwins = 0;
         unsigned        m_rsims =  0;
 };
+
+std::ostream& operator << (std::ostream& os, const GameNode& node)
+{
+        os << (float) node.m_wins/node.m_sims;
+        return os;
+}
 
 StrategyMCTS::StrategyMCTS()
 {
@@ -211,8 +218,9 @@ void MCGameTree::print_score_map(std::ostream& os) const
                 for (unsigned x = 0; x < m_s.num_cols; x ++) {
                         const GameNode* n = m_root.find_child(Move(x, y).key);
                         if (n)
-                                //os << n->qi(m_root.m_sims) << "\t";
-                                os << (float) n->m_wins/n->m_sims << "\t";
+                                os << n->qi(m_root.m_sims) << "\t";
+                                //os << (float) n->m_rwins/n->m_rsims << "\t";
+                                //os << (float) n->m_wins/n->m_sims << "\t";
                         else
                                 os << "NAN" << "\t";
                 }
@@ -524,6 +532,10 @@ static void search(unsigned sample_count, MCGameTree& mcgt)
                                                 sample_count/5, sample);
                                 mcgt.back_propagate(sample, path_samples, selected.m_chn[selected.m_i_chn], depth + 1);
                         }
+                        //const MCGameTree::SmallSample** path_samples =
+                        //                mcgt.sample_at(selected.m_chn[selected.m_i_chn], depth + 1,
+                        //                sample_count, sample);
+                        //mcgt.back_propagate(sample, path_samples, selected.m_chn[selected.m_i_chn], depth + 1);
                         selected.m_i_chn ++;
                 }
         } else {
@@ -545,14 +557,24 @@ static void search(unsigned sample_count, MCGameTree& mcgt)
 
 void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Move& m) const
 {
+#ifdef TEST
+        MCGameTree mcgt(s, s.num_left);
+        unsigned depth;
+        GameNode& selected = mcgt.switch_to_optimal_node(depth, 100);
+        mcgt.expand_node(selected, depth);
+
+        MCGameTree::Sample sample;
+        mcgt.sample_at(*selected.find_child(Move(5, 3).key), depth + 1,
+                        1000, sample);
+#else
         if (s.last_move.key == 0XFFFF) {
                 // Hard code first move.
                 m.set(s.num_cols/2, s.num_rows/2);
                 return;
         }
 
-        unsigned sample_count = 500;
-        const unsigned SUB_CYCLES = 500;
+        unsigned sample_count = 100;
+        const unsigned SUB_CYCLES = 5000;
         const unsigned DEPTH_LIMIT = s.num_left;
 
         MCGameTree mcgt(s, DEPTH_LIMIT);
@@ -563,12 +585,13 @@ void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Mo
                 for (unsigned i = 0; i < SUB_CYCLES; i ++) {
                         ::search(sample_count, mcgt);
                 }
-                const GameNode& best = mcgt.get_optimal_node();
+                const GameNode& best = mcgt.get_best_node();
                 m.set(best.m_x, best.m_y);
                 std::cout << "B = " << best.beta() << ", " << mcgt << ", Current " << m << std::endl;
                 //mcgt.print_score_map(std::cout);
                 //std::cout << std::endl;
         }
+#endif
 }
 
 void StrategyMCTS::print(std::ostream& os) const
