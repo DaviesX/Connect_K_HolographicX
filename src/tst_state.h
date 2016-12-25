@@ -229,6 +229,44 @@ static inline State tst_state_create_sample13()
         return s;
 }
 
+static inline State tst_state_create_sample14()
+{
+        State s(9, 9, false, Move(0, 1), 5, 5000);
+
+        s.set_move(4, 4, State::AI_PIECE);
+        s.set_move(5, 3, State::AI_PIECE);
+        s.set_move(3, 4, State::AI_PIECE);
+        s.set_move(3, 6, State::AI_PIECE);
+        s.set_move(5, 5, State::AI_PIECE);
+        s.set_move(6, 5, State::AI_PIECE);
+        s.set_move(5, 3, State::AI_PIECE);
+        s.set_move(2, 4, State::AI_PIECE);
+        s.set_move(0, 4, State::AI_PIECE);
+
+        s.set_move(4, 5, State::HUMAN_PIECE);
+        s.set_move(5, 4, State::HUMAN_PIECE);
+        s.set_move(6, 3, State::HUMAN_PIECE);
+        s.set_move(2, 3, State::HUMAN_PIECE);
+        s.set_move(3, 3, State::HUMAN_PIECE);
+        s.set_move(4, 3, State::HUMAN_PIECE);
+        s.set_move(3, 2, State::HUMAN_PIECE);
+        s.set_move(1, 4, State::HUMAN_PIECE);
+
+        return s;
+}
+
+static inline State tst_state_create_sample15()
+{
+        State s(9, 9, false, Move(0, 1), 5, 5000);
+
+        s.set_move(4, 5, State::AI_PIECE);
+
+        s.set_move(4, 4, State::HUMAN_PIECE);
+        s.set_move(3, 5, State::HUMAN_PIECE);
+
+        return s;
+}
+
 static inline int tst_state()
 {
         State s = ::tst_state_create_sample();

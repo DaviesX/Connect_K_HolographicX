@@ -25,6 +25,7 @@ static bool is_goal_for(const char* board, unsigned w, unsigned h, const Move& m
                 ::scan_on(board, w, h, k, move.x, move.y, 7, ::goal_eval, &who)) > k;
 }
 
+
 // APIs
 State::State(const unsigned num_cols,
              const unsigned num_rows,
@@ -98,6 +99,38 @@ bool State::is_goal() const
 bool State::is_goal_for(const Move& m, int who) const
 {
         return ::is_goal_for(m_board, num_cols, num_rows, m, who, k);
+}
+
+bool State::is_almost_goal_for(const Move& m, int who) const
+{
+        for (unsigned d = 0; d < 4; d ++) {
+                int x0 = m.x, y0 = m.y;
+                int x1 = m.x, y1 = m.y;
+                int a = ::move_xy(m_board, num_cols, num_rows, k, x0, y0, d, ::goal_eval, &who);
+                int b = ::move_xy(m_board, num_cols, num_rows, k, x1, y1, d + 4, ::goal_eval, &who);
+                a -= collides_edges(x0, y0, d) || is(x0, y0) != State::NO_PIECE;
+                b -= collides_edges(x1, y1, d + 4) || is(x1, y1) != State::NO_PIECE;
+                if (a + b > (int) k - 2)
+                        return true;
+        }
+        return false;
+}
+
+bool State::is_steady_goal_for(const Move& m, int who) const
+{
+        for (unsigned d = 0; d < 4; d ++) {
+                int x0 = m.x, y0 = m.y;
+                int x1 = m.x, y1 = m.y;
+                int a = ::move_xy(m_board, num_cols, num_rows, k, x0, y0, d, ::goal_eval, &who);
+                int b = ::move_xy(m_board, num_cols, num_rows, k, x1, y1, d + 4, ::goal_eval, &who);
+                if (a + b <= (int) k - 1)
+                        continue;
+                a -= collides_edges(x0, y0, d) || is(x0, y0) != State::NO_PIECE;
+                b -= collides_edges(x1, y1, d + 4) || is(x1, y1) != State::NO_PIECE;
+                if (a + b > (int) k - 2)
+                        return true;
+        }
+        return false;
 }
 
 bool State::is_goal_for(int who) const

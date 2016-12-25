@@ -5,8 +5,8 @@ CXXFLAGS=-g -Isrc -std=c++11
 LDFLAGS=-g
 
 # Optimization flags
-CXXFLAGS+=-Ofast -flto
-LDFLAGS+=-Ofast -flto
+CXXFLAGS+=-O2
+LDFLAGS+=-O2
 
 # Output executable and default target.
 BIN=bin/HolographicXAI.exe

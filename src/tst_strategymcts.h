@@ -10,7 +10,7 @@
 static int tst_strategymcts()
 {
         std::vector<State> states;
-        states.push_back(::tst_state_create_sample13());
+        states.push_back(::tst_state_create_sample15());
         StrategyMCTS strategy;
 
         Move m;

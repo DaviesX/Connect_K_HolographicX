@@ -158,6 +158,8 @@ public:
 
         bool            is_goal() const;
         bool            is_goal_for(const Move& m, int who) const;
+        bool            is_almost_goal_for(const Move& m, int who) const;
+        bool            is_steady_goal_for(const Move& m, int who) const;
         bool            is_goal_for(int who) const;
 
         inline unsigned scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const
