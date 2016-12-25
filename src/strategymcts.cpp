@@ -624,8 +624,8 @@ void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Mo
                 return;
         }
 
-        unsigned sample_count = 100;
-        const unsigned SUB_CYCLES = 500;
+        unsigned sample_count = 500;
+        const unsigned SUB_CYCLES = 1000;
         const unsigned DEPTH_LIMIT = s.num_left;
 
         MCGameTree mcgt(s, DEPTH_LIMIT);
