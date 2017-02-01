@@ -31,21 +31,21 @@ void StrategyDFS::load_state(const State& s)
         m_heur->load_state(s);
 }
 
-void StrategyDFS::build_all_actions(State& s, std::vector<AvailableAction>& actions) const
+void StrategyDFS::build_all_actions(State& s, std::vector<HeuristicGameNode>& actions) const
 {
         if (!s.gravity_on) {
                 for (unsigned y = 0; y < s.num_rows; y ++) {
                         for (unsigned x = 0; x < s.num_cols; x ++) {
                                 if (s.is(x, y) != State::NO_PIECE)
                                         continue;
-                                actions.push_back(AvailableAction(x, y, 0));
+                                actions.push_back(HeuristicGameNode(x, y, 0));
                         }
                 }
         } else {
                 for (unsigned x = 0; x < s.num_cols; x ++) {
                         for (unsigned y = 0; y < s.num_rows; y ++) {
                                 if (s.is(x, y) == State::NO_PIECE) {
-                                        actions.push_back(AvailableAction(x, y, 0));
+                                        actions.push_back(HeuristicGameNode(x, y, 0));
                                         break;
                                 }
                         }
@@ -53,7 +53,7 @@ void StrategyDFS::build_all_actions(State& s, std::vector<AvailableAction>& acti
         }
 }
 
-void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, const std::vector<Move>& suggestions, std::vector<AvailableAction>& actions) const
+void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, const std::vector<Move>& suggestions, std::vector<HeuristicGameNode>& actions) const
 {
         build_all_actions(s, actions);
 
@@ -62,7 +62,7 @@ void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, c
                 suggested = suggestions[depth];
 
         if (depth < limit - 1) {
-                for (AvailableAction action: actions) {
+                for (HeuristicGameNode action: actions) {
                         if (action.x == suggested.x && action.y == suggested.y)
                                 action.score = FLT_MAX;
                         else
@@ -71,24 +71,24 @@ void StrategyDFS::build_actions_fast(State& s, unsigned depth, unsigned limit, c
 
                 if ((depth & 1) == 0)
                         std::sort(actions.begin(), actions.end(),
-                                  [](const AvailableAction& a, const AvailableAction& b) {return a > b;});
+                                  [](const HeuristicGameNode& a, const HeuristicGameNode& b) {return a > b;});
                 else
                         std::sort(actions.begin(), actions.end(),
-                                  [](const AvailableAction& a, const AvailableAction& b) {return a < b;});
+                                  [](const HeuristicGameNode& a, const HeuristicGameNode& b) {return a < b;});
 
         } else {
                 std::random_shuffle(actions.begin(), actions.end());
         }
 }
 
-void StrategyDFS::build_first_level(State& s, float* score_map, std::vector<AvailableAction>& actions) const
+void StrategyDFS::build_first_level(State& s, float* score_map, std::vector<HeuristicGameNode>& actions) const
 {
         build_all_actions(s, actions);
-        for (AvailableAction action: actions)
+        for (HeuristicGameNode action: actions)
                 action.score = score_map[action.x + action.y*s.num_cols];
 
         std::sort(actions.begin(), actions.end(),
-                  [](const AvailableAction& a, const AvailableAction& b) {return a > b;});
+                  [](const HeuristicGameNode& a, const HeuristicGameNode& b) {return a > b;});
 }
 
 static void print_path(std::ostream& os, std::vector<Move> path)
@@ -118,13 +118,13 @@ float StrategyDFS::minimizer(State& s, float alpha, float beta,
         if (watch.check_point() <= CHECK_POINT_LIMIT)
                 return TIME_OUT_CODE;
 
-        std::vector<AvailableAction> actions;
+        std::vector<HeuristicGameNode> actions;
         build_actions_fast(s, depth, limit, suggestions, actions);
 
         float score = beta;
         //float score = FLT_MAX;
         for (unsigned i = 0; i < actions.size(); i ++) {
-                const AvailableAction& action = actions[i];
+                const HeuristicGameNode& action = actions[i];
 
                 Move cur_move(action.x, action.y);
 
@@ -167,13 +167,13 @@ float StrategyDFS::maximizer(State& s, float alpha, float beta,
         if (watch.check_point() <= CHECK_POINT_LIMIT)
                 return TIME_OUT_CODE;
 
-        std::vector<AvailableAction> actions;
+        std::vector<HeuristicGameNode> actions;
         build_actions_fast(s, depth, limit, suggestions, actions);
 
         float score = alpha;
         //float score = -FLT_MAX;
         for (unsigned i = 0; i < actions.size(); i ++) {
-                const AvailableAction& action = actions[i];
+                const HeuristicGameNode& action = actions[i];
 
                 Move cur_move(action.x, action.y);
 
@@ -222,13 +222,13 @@ float StrategyDFS::abmin_max_move(State& s, unsigned limit, const std::vector<Mo
         bool has_set = false;
         float score = -INFINITY;
 
-        std::vector<AvailableAction> actions;
+        std::vector<HeuristicGameNode> actions;
         build_first_level(s, score_map, actions);
 
         m_heur->load_state(s);
 
         for (unsigned i = 0; i < actions.size(); i ++) {
-                const AvailableAction& action = actions[i];
+                const HeuristicGameNode& action = actions[i];
 
                 Move cur_move(action.x, action.y);
 

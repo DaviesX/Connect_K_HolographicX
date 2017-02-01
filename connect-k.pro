@@ -23,7 +23,8 @@ SOURCES += \
     src/heurchessdeg.cpp \
     src/heurcostbenefit.cpp \
     src/heurultimate.cpp \
-    src/strategymcts.cpp
+    src/strategymcts.cpp \
+    src/gamenode.cpp
 
 HEADERS += \
     src/iheuristic.h \
@@ -45,4 +46,5 @@ HEADERS += \
     src/heurultimate.h \
     src/tst_heurultimate.h \
     src/strategymcts.h \
-    src/tst_strategymcts.h
+    src/tst_strategymcts.h \
+    src/gamenode.h

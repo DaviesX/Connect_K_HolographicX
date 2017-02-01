@@ -4,89 +4,20 @@
 #include <map>
 #include <iostream>
 #include "state.h"
+#include "gamenode.h"
 #include "stopwatch.h"
 #include "strategymcts.h"
 
 #define WITH_RAVE
 //#define TEST
 
-struct GameNode
-{
-        GameNode():
-                m_x(0xFF), m_y(0xFF)
-        {
-        }
 
-        GameNode(int x, int y):
-                m_x(x), m_y(y)
-        {
-        }
-
-        float beta() const
-        {
-                const float b = 0.01f;
-                return (float) m_rsims/(m_sims + m_rsims + 4.0f*b*b*(float) m_sims*(float) m_rsims);
-        }
-
-        float qi(unsigned n_sims) const
-        {
-                const float c = 5.0f;
-#ifdef WITH_RAVE
-                float b = beta();
-                return (1.0f - b)*(float) m_wins/m_sims + b*(float) m_rwins/m_rsims +
-                        sqrt(c*log(n_sims)/(float) m_sims);
-#else
-                return (float) m_wins/m_sims + sqrt(c*log(n_sims)/(float) m_sims);
-#endif
-        }
-
-        // Position and key.
-        union {
-                struct {
-                        unsigned char   m_x;
-                        unsigned char   m_y;
-                };
-                unsigned short  key;
-        };
-
-        GameNode* find_child(unsigned short key) const
-        {
-                int l = 0, h = m_num_chn - 1;
-                while (l <= h) {
-                        unsigned m = l + (((unsigned) (h - l)) >> 1);
-                        if (key == m_chn[m].key)
-                                return &m_chn[m];
-                        else if (key < m_chn[m].key)
-                                h = m - 1;
-                        else
-                                l = m + 1;
-                }
-                return nullptr;
-        }
-
-        // Childrens are sorted in key order.
-        unsigned char   m_num_chn = 0;
-        unsigned char   m_i_chn = 0;
-        GameNode*       m_chn = nullptr;
-
-        // Statistics.
-        unsigned        m_wins = 0;
-        unsigned        m_sims = 0;
-        unsigned        m_rwins = 0;
-        unsigned        m_rsims =  0;
-};
-
-std::ostream& operator << (std::ostream& os, const GameNode& node)
-{
-        os << (float) node.m_wins/node.m_sims;
-        return os;
-}
 
 StrategyMCTS::StrategyMCTS()
 {
 }
 
-static GameNode* expand_state(const State& s, std::vector<Move>& buf, bool to_nodes)
+static MonteCarloGameNode* expand_state(const State& s, std::vector<Move>& buf, bool to_nodes)
 {
         buf.clear();
 
@@ -111,10 +42,10 @@ static GameNode* expand_state(const State& s, std::vector<Move>& buf, bool to_no
         }
 
         if (to_nodes && !buf.empty()) {
-                GameNode* nodes = new GameNode [buf.size()];
+                MonteCarloGameNode* nodes = new MonteCarloGameNode [buf.size()];
                 for (unsigned i = 0; i < buf.size(); i ++) {
-                        nodes[i].m_x = buf[i].x;
-                        nodes[i].m_y = buf[i].y;
+                        nodes[i].x = buf[i].x;
+                        nodes[i].y = buf[i].y;
                 }
                 return nodes;
         } else
@@ -153,14 +84,14 @@ public:
 
         MCGameTree(const State& s, unsigned max_depth);
         ~MCGameTree();
-        GameNode&                       switch_to_optimal_node(unsigned& depth, unsigned step_size);
-        GameNode&                       get_best_node() const;
-        GameNode&                       get_optimal_node() const;
-        const std::vector<SampleMove>&  expand_node(GameNode& node, unsigned depth);
-        const SmallSample**             sample_at(const GameNode& node, const std::vector<SampleMove>& smoves,
+        MonteCarloGameNode&                       switch_to_optimal_node(unsigned& depth, unsigned step_size);
+        MonteCarloGameNode&                       get_best_node() const;
+        MonteCarloGameNode&                       get_optimal_node() const;
+        const std::vector<SampleMove>&  expand_node(MonteCarloGameNode& node, unsigned depth);
+        const SmallSample**             sample_at(const MonteCarloGameNode& node, const std::vector<SampleMove>& smoves,
                                                   unsigned depth, unsigned sample_count, Sample& sample);
         void                            back_propagate(const Sample& sample, const SmallSample** psamples,
-                                                       GameNode& nodes, unsigned depth);
+                                                       MonteCarloGameNode& nodes, unsigned depth);
 
         SmallSample&                    get_rave(unsigned p, unsigned x, unsigned y) const;
         const SmallSample&              get_rave(const SmallSample** rave, unsigned p, unsigned x, unsigned y) const;
@@ -175,8 +106,8 @@ public:
         void                            print_score_map(std::ostream& os) const;
 private:
         State                           m_s;
-        GameNode                        m_root;
-        GameNode**                      m_path;
+        MonteCarloGameNode                        m_root;
+        MonteCarloGameNode**                      m_path;
         unsigned                        m_path_length = 0;
         unsigned                        m_max_depth;
         std::vector<Move>               m_node_buf;
@@ -188,14 +119,14 @@ std::ostream& operator<< (std::ostream& os, const MCGameTree& mcgt)
 {
         os << "T = " << mcgt.m_path[0]->m_sims << ", E{X} = " << mcgt.win_rate() << ", PL = " << mcgt.m_path_length << ", ";
         for (unsigned i = 1; i < mcgt.m_path_length; i ++)
-                os << Move(mcgt.m_path[i]->m_x, mcgt.m_path[i]->m_y) << ", ";
+                os << Move(mcgt.m_path[i]->x, mcgt.m_path[i]->y) << ", ";
         return os;
 }
 
 MCGameTree::MCGameTree(const State& s, unsigned max_depth):
         m_s(s), m_max_depth(std::min(s.num_left, max_depth))
 {
-        m_path = new GameNode* [m_max_depth + 1];
+        m_path = new MonteCarloGameNode* [m_max_depth + 1];
 
         m_psamp_buf[0] = new SmallSample [s.num_cols*s.num_rows];
         m_psamp_buf[1] = new SmallSample [s.num_cols*s.num_rows];
@@ -204,7 +135,7 @@ MCGameTree::MCGameTree(const State& s, unsigned max_depth):
         m_node_buf.reserve(s.num_left);
 }
 
-static void MCGameTree_free(GameNode* node)
+static void MCGameTree_free(MonteCarloGameNode* node)
 {
         if (node->m_num_chn == 0)
                 return ;
@@ -225,7 +156,7 @@ void MCGameTree::print_score_map(std::ostream& os) const
 {
         for (unsigned y = 0; y < m_s.num_rows; y ++) {
                 for (unsigned x = 0; x < m_s.num_cols; x ++) {
-                        const GameNode* n = m_root.find_child(Move(x, y).key);
+                        const MonteCarloGameNode* n = m_root.find_child(Move(x, y).key);
                         if (n)
                                 os << n->qi(m_root.m_sims) << "\t";
                                 //os << (float) n->m_rwins/n->m_rsims << "\t";
@@ -237,21 +168,21 @@ void MCGameTree::print_score_map(std::ostream& os) const
         }
 }
 
-GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth, unsigned step_size)
+MonteCarloGameNode& MCGameTree::switch_to_optimal_node(unsigned& depth, unsigned step_size)
 {
-        GameNode* node = &m_root;
+        MonteCarloGameNode* node = &m_root;
         depth = 0;
 
         // Reset all the moves.
         for (unsigned i = 1; i < m_path_length; i ++) {
-                m_s.set_move(m_path[i]->m_x, m_path[i]->m_y, State::NO_PIECE);
+                m_s.set_move(m_path[i]->x, m_path[i]->y, State::NO_PIECE);
         }
 
         // Switch to the optimal branch.
         m_path_length = 0;
         while (true) {
                 if (node->key != 0xFFFF)
-                        m_s.set_move(node->m_x, node->m_y, ((depth & 1)) == 1 ? State::AI_PIECE : State::HUMAN_PIECE);
+                        m_s.set_move(node->x, node->y, ((depth & 1)) == 1 ? State::AI_PIECE : State::HUMAN_PIECE);
                 m_path[m_path_length ++] = node;
                 if (depth >= m_max_depth) {
                         if (node->m_i_chn == node->m_num_chn)
@@ -277,7 +208,7 @@ GameNode& MCGameTree::switch_to_optimal_node(unsigned& depth, unsigned step_size
         }
 }
 
-GameNode& MCGameTree::get_best_node() const
+MonteCarloGameNode& MCGameTree::get_best_node() const
 {
         int i_best = -1;
         unsigned most = 0;
@@ -292,12 +223,12 @@ GameNode& MCGameTree::get_best_node() const
         return m_path[0]->m_chn[i_best];
 }
 
-GameNode& MCGameTree::get_optimal_node() const
+MonteCarloGameNode& MCGameTree::get_optimal_node() const
 {
         return *m_path[1];
 }
 
-const std::vector<MCGameTree::SampleMove>& MCGameTree::expand_node(GameNode& node, unsigned depth)
+const std::vector<MCGameTree::SampleMove>& MCGameTree::expand_node(MonteCarloGameNode& node, unsigned depth)
 {
         if (node.m_sims > 0 && node.m_wins >= node.m_sims) {
                 // No children can be made at a goal state.
@@ -319,7 +250,7 @@ const std::vector<MCGameTree::SampleMove>& MCGameTree::expand_node(GameNode& nod
         return m_sample_buf;
 }
 
-const MCGameTree::SmallSample** MCGameTree::sample_at(const GameNode& node, const std::vector<SampleMove>& smoves,
+const MCGameTree::SmallSample** MCGameTree::sample_at(const MonteCarloGameNode& node, const std::vector<SampleMove>& smoves,
                                                       unsigned depth, unsigned sample_count, Sample& sample)
 {
         clear_rave();
@@ -332,12 +263,12 @@ const MCGameTree::SmallSample** MCGameTree::sample_at(const GameNode& node, cons
         }
 
         int player = (depth & 1) == 1 ? State::AI_PIECE : State::HUMAN_PIECE;
-        m_s.set_move(node.m_x, node.m_y, player);
-        if (m_s.is_goal_for(Move(node.m_x, node.m_y), player)) {
+        m_s.set_move(node.x, node.y, player);
+        if (m_s.is_goal_for(Move(node.x, node.y), player)) {
                 sample.n_sims = sample_count;
                 sample.n_wins = sample_count;
 
-                m_s.set_move(node.m_x, node.m_y, State::NO_PIECE);
+                m_s.set_move(node.x, node.y, State::NO_PIECE);
                 return const_cast<const SmallSample**>(m_psamp_buf);
         }
 
@@ -414,20 +345,20 @@ const MCGameTree::SmallSample** MCGameTree::sample_at(const GameNode& node, cons
         Move worse;
         best_rave(1, worse);
         if (m_s.is_steady_goal_for(worse, opponent_of(player))) {
-                if (!m_s.is_steady_goal_for(Move(node.m_x, node.m_y), player)) {
+                if (!m_s.is_steady_goal_for(Move(node.x, node.y), player)) {
                         sample.n_wins = 0;
                         //sample.n_losses = sample_count;
                 }
         }
 
-        m_s.set_move(node.m_x, node.m_y, State::NO_PIECE);
+        m_s.set_move(node.x, node.y, State::NO_PIECE);
 
         delete [] moves;
         return const_cast<const SmallSample**>(m_psamp_buf);
 }
 
 void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psamples,
-                                GameNode& node, unsigned depth)
+                                MonteCarloGameNode& node, unsigned depth)
 {
         node.m_sims += sample.n_sims;
         node.m_wins += sample.n_wins;
@@ -446,7 +377,7 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
                         m_path[i]->m_rsims += sample.n_sims;
 
                         for (int j = (int) i - 3; j >= 0; j -= 2) {
-                                GameNode* cur_player = m_path[j]->find_child(m_path[i]->key);
+                                MonteCarloGameNode* cur_player = m_path[j]->find_child(m_path[i]->key);
                                 if (cur_player) {
                                         cur_player->m_rsims += sample.n_sims;
                                         cur_player->m_rwins += sample.n_wins;
@@ -456,7 +387,7 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
 
                         // Update rave stats for the opponent.
                         for (const Move& m: m_node_buf) {
-                                GameNode* oppo = m_path[i]->find_child(m.key);
+                                MonteCarloGameNode* oppo = m_path[i]->find_child(m.key);
                                 const SmallSample& rave = get_rave(psamples, 1, m.x, m.y);
                                 //const SmallSample& oppo_rave = get_rave(psamples, 0, m.x, m.y);
                                 if (oppo) {
@@ -480,7 +411,7 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
                         m_path[i]->m_rsims += sample.n_sims;
 
                         for (int j = (int) i - 3; j >= 0; j -= 2) {
-                                GameNode* oppo = m_path[j]->find_child(m_path[i]->key);
+                                MonteCarloGameNode* oppo = m_path[j]->find_child(m_path[i]->key);
                                 if (oppo) {
                                         oppo->m_rsims += sample.n_sims;
 
@@ -491,7 +422,7 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
 
                         // Update rave stats for current player.
                         for (const Move& m: m_node_buf) {
-                                GameNode* cur_player = m_path[i]->find_child(m.key);
+                                MonteCarloGameNode* cur_player = m_path[i]->find_child(m.key);
                                 const SmallSample& rave = get_rave(psamples, 0, m.x, m.y);
                                 if (cur_player) {
                                         cur_player->m_rsims += rave.n_sims;
@@ -499,7 +430,7 @@ void MCGameTree::back_propagate(const Sample& sample, const SmallSample** psampl
                                 }
                         }
 
-                        GameNode* cur_player = m_path[i]->find_child(node.key);
+                        MonteCarloGameNode* cur_player = m_path[i]->find_child(node.key);
                         if (cur_player) {
                                 cur_player->m_rsims += sample.n_sims;
                                 cur_player->m_rwins += sample.n_wins;
@@ -582,7 +513,7 @@ unsigned MCGameTree::max_depth() const
         return m_max_depth;
 }
 
-static const GameNode& best_action(const std::vector<GameNode>& actions)
+static const MonteCarloGameNode& best_action(const std::vector<MonteCarloGameNode>& actions)
 {
         unsigned max_i = 0;
         for (unsigned i = 1; i < actions.size(); i ++) {
@@ -595,7 +526,7 @@ static const GameNode& best_action(const std::vector<GameNode>& actions)
 static void search(unsigned sample_count, MCGameTree& mcgt)
 {
         unsigned depth;
-        GameNode& selected = mcgt.switch_to_optimal_node(depth, sample_count);
+        MonteCarloGameNode& selected = mcgt.switch_to_optimal_node(depth, sample_count);
         const std::vector<MCGameTree::SampleMove>& smoves = mcgt.expand_node(selected, depth);
 
         MCGameTree::Sample sample;
@@ -669,8 +600,8 @@ void StrategyMCTS::make_move(const State& s, unsigned quality, unsigned time, Mo
                 for (unsigned i = 0; i < SUB_CYCLES; i ++) {
                         ::search(sample_count, mcgt);
                 }
-                const GameNode& best = mcgt.get_best_node();
-                m.set(best.m_x, best.m_y);
+                const MonteCarloGameNode& best = mcgt.get_best_node();
+                m.set(best.x, best.y);
                 std::cout << "B = " << best.beta() << ", " << mcgt << ", Current " << m << std::endl;
                 //mcgt.print_score_map(std::cout);
                 //std::cout << std::endl;
