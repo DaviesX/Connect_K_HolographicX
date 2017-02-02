@@ -14,6 +14,12 @@ Move::Move(unsigned char x, unsigned char y)
         this->x = x;
 }
 
+Move::Move(const Move& m)
+{
+        this->x = m.x;
+        this->y = m.y;
+}
+
 void Move::set(unsigned char x, unsigned char y)
 {
         this->x = x;

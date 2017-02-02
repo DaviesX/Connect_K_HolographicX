@@ -16,6 +16,7 @@ public:
 
         Move();
         Move(unsigned char x, unsigned char y);
+        Move(const Move& m);
 
         void set(unsigned char x, unsigned char y);
 

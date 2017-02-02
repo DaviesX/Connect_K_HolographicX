@@ -3,10 +3,11 @@
 
 #include <ostream>
 #include <vector>
+#include <algorithm>
 #include "move.h"
 
 typedef bool (*scan_eval_t) (const char* val, int x, int y, unsigned dist, void* data);
-
+typedef char player_t;
 
 // Helpers
 static unsigned inline move_xy(const char* board, const int w, const int h, const int k,
@@ -153,43 +154,79 @@ public:
 
         bool            operator== (const State& other) const;
 
-        int             is(unsigned x, unsigned y) const;
-        void            set_move(unsigned x, unsigned y, char who);
+        player_t        is(unsigned x, unsigned y) const;
+        void            set_move(unsigned x, unsigned y, player_t who);
 
         bool            is_goal() const;
-        bool            is_goal_for(const Move& m, int who) const;
-        bool            is_almost_goal_for(const Move& m, int who) const;
-        bool            is_steady_goal_for(const Move& m, int who) const;
-        bool            is_goal_for(int who) const;
+        bool            is_goal_for(const Move& m, player_t who) const;
+        bool            is_almost_goal_for(const Move& m, player_t who) const;
+        bool            is_steady_goal_for(const Move& m, player_t who) const;
+        bool            is_goal_for(player_t who) const;
 
-        inline unsigned scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const
-        {
-                return ::scan_on(m_board, num_cols, num_rows, k, x, y, d, eval, data);
-        }
+        unsigned        scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const;
+        unsigned        move_xy(int& x, int& y, unsigned d, scan_eval_t eval, void* data) const;
 
-        inline unsigned move_xy(int& x, int& y, unsigned d, scan_eval_t eval, void* data) const
-        {
-                return ::move_xy(m_board, num_cols, num_rows, k, x, y, d, eval, data);
-        }
+        bool            collides_edges(int x, int y, unsigned d, int dist) const;
+        bool            collides_edges(int x, int y, unsigned d) const;
 
-        bool           collides_edges(int x, int y, unsigned d, int dist) const;
-        bool           collides_edges(int x, int y, unsigned d) const;
-
-        float          current_score() const;
+        float           current_score() const;
         const std::vector<State::MiniNode>& path() const;
 
 
-        void           push_move(unsigned x, unsigned y, int who);
-        void           prev_move(Move& move) const;
-        void           pop_move();
-        void           reset_all_moves();
+        void            push_move(unsigned x, unsigned y, char who);
+        void            prev_move(Move& move) const;
+        void            pop_move();
+        void            reset_all_moves();
+
+        template<typename T>
+        void            expand(std::vector<T>& expansion) const;
 private:
         int                             m_goal_for = State::NO_PIECE;   // Whose goal?
-        char*                           m_board;                        // Gameboard
+        player_t*                       m_board;                        // Gameboard
         std::vector<State::MiniNode>    m_stack;                        // Action path
 };
 
 std::ostream&   operator<<(std::ostream& os, const State& s);
+
+inline unsigned State::scan(int x, int y, unsigned d, scan_eval_t eval, void* data) const
+{
+        return ::scan_on(m_board, static_cast<int>(num_cols), static_cast<int>(num_rows),
+                         static_cast<int>(k), x, y, d, eval, data);
+}
+
+inline unsigned State::move_xy(int& x, int& y, unsigned d, scan_eval_t eval, void* data) const
+{
+        return ::move_xy(m_board, static_cast<int>(num_cols), static_cast<int>(num_rows),
+                         static_cast<int>(k), x, y, d, eval, data);
+}
+
+template <typename T>
+void State::expand(std::vector<T>& result) const
+{
+        result.clear();
+
+        if (!gravity_on) {
+                for (unsigned y = 0; y < num_rows; y ++) {
+                        for (unsigned x = 0; x < num_cols; x ++) {
+                                if (is(x, y) != State::NO_PIECE)
+                                        continue;
+                                result.push_back(T(Move(x, y)));
+                        }
+                }
+        } else {
+                for (unsigned x = 0; x < num_cols; x ++) {
+                        for (unsigned y = 0; y < num_rows; y ++) {
+                                if (is(x, y) == State::NO_PIECE) {
+                                        result.push_back(T(Move(x, y)));
+                                        break;
+                                }
+                        }
+                }
+                std::sort(result.begin(), result.end(), [](const T& a, const T& b) {
+                        return static_cast<const Move&>(a) < static_cast<const Move&>(b);
+                });
+        }
+}
 
 #define opponent_of(__who)      ((__who) == State::AI_PIECE ? State::HUMAN_PIECE : State::AI_PIECE)
 

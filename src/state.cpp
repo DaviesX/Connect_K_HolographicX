@@ -1,5 +1,7 @@
 #include <ostream>
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include "log.h"
 #include "iheuristic.h"
 #include "state.h"
@@ -70,7 +72,7 @@ State::~State()
     delete [] m_board;
 }
 
-int State::is(unsigned x, unsigned y) const
+player_t State::is(unsigned x, unsigned y) const
 {
         return m_board[x + y*num_cols];
 }
@@ -96,12 +98,12 @@ bool State::is_goal() const
         return m_goal_for != State::NO_PIECE;
 }
 
-bool State::is_goal_for(const Move& m, int who) const
+bool State::is_goal_for(const Move& m, player_t who) const
 {
         return ::is_goal_for(m_board, num_cols, num_rows, m, who, k);
 }
 
-bool State::is_almost_goal_for(const Move& m, int who) const
+bool State::is_almost_goal_for(const Move& m, player_t who) const
 {
         for (unsigned d = 0; d < 4; d ++) {
                 int x0 = m.x, y0 = m.y;
@@ -116,7 +118,7 @@ bool State::is_almost_goal_for(const Move& m, int who) const
         return false;
 }
 
-bool State::is_steady_goal_for(const Move& m, int who) const
+bool State::is_steady_goal_for(const Move& m, player_t who) const
 {
         for (unsigned d = 0; d < 4; d ++) {
                 int x0 = m.x, y0 = m.y;
@@ -133,7 +135,7 @@ bool State::is_steady_goal_for(const Move& m, int who) const
         return false;
 }
 
-bool State::is_goal_for(int who) const
+bool State::is_goal_for(player_t who) const
 {
         return m_goal_for == who;
 }
@@ -191,7 +193,7 @@ const std::vector<State::MiniNode>& State::path() const
         return m_stack;
 }
 
-void State::push_move(unsigned x, unsigned y, int who)
+void State::push_move(unsigned x, unsigned y, char who)
 {
         m_stack.push_back(State::MiniNode(x, y));
         m_board[x + y*num_cols] = who;

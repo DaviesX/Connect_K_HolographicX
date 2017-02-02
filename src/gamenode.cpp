@@ -1,3 +1,5 @@
+#include <cassert>
+#include "constants.h"
 #include "gamenode.h"
 
 
@@ -23,32 +25,83 @@ MonteCarloGameNode::MonteCarloGameNode():
 {
 }
 
-MonteCarloGameNode::MonteCarloGameNode(unsigned char x, unsigned char y):
-        Move(x, y)
+MonteCarloGameNode::MonteCarloGameNode(const Move& m):
+        Move(m.x, m.y)
 {
+}
+
+unsigned MonteCarloGameNode::get_n_wins() const
+{
+        return m_wins;
+}
+
+unsigned MonteCarloGameNode::get_n_sims() const
+{
+        return m_sims;
+}
+
+unsigned MonteCarloGameNode::get_r_wins() const
+{
+        return m_rwins;
+}
+
+unsigned MonteCarloGameNode::get_r_sims() const
+{
+        return m_rsims;
+}
+
+bool MonteCarloGameNode::has_simulated() const
+{
+        return m_sims != 0;
+}
+
+bool MonteCarloGameNode::is_goal() const
+{
+        return has_simulated() && (m_wins == m_sims);
+}
+
+float MonteCarloGameNode::win_rate() const
+{
+        return static_cast<float>(get_n_wins())/static_cast<float>(get_n_sims());
+}
+
+float MonteCarloGameNode::rave_win_rate() const
+{
+        return static_cast<float>(get_r_wins())/static_cast<float>(get_r_sims());
+}
+
+void MonteCarloGameNode::update_node_stats(unsigned more_wins, unsigned more_sims,
+                                           unsigned more_rwins, unsigned more_rsims)
+{
+        m_wins += more_wins;
+        m_sims += more_sims;
+        m_rwins += more_rwins;
+        m_rsims += more_rsims;
 }
 
 float MonteCarloGameNode::beta() const
 {
-        const float b = 0.01f;
+        float b = constants::b;
         const float n_hat = static_cast<float>(m_rsims);
         const float n = static_cast<float>(m_sims);
         return n_hat/(n + n_hat + 4.0f*b*b*n*n_hat);
 }
 
-float MonteCarloGameNode::qi(unsigned n_sims) const
+float MonteCarloGameNode::qi(unsigned t) const
 {
-        const float c = 5.0f;
         float b = beta();
-        float win_rate = static_cast<float>(m_wins)/m_sims;
-        float rave_win_rate = static_cast<float>(m_rwins)/m_rsims;
-        return (1.0f - b)*win_rate + b*rave_win_rate +
-                std::sqrt(c*std::log(static_cast<float>(n_sims))/m_sims);
+        return (1.0f - b)*win_rate() + b*rave_win_rate() +
+                std::sqrt(constants::c*std::log(static_cast<float>(t))/m_sims);
 }
 
-MonteCarloGameNode* MonteCarloGameNode::find_child(unsigned short key) const
+MonteCarloGameNode* MonteCarloGameNode::get_child(unsigned short key)
 {
-        int l = 0, h = m_num_chn - 1;
+        return const_cast<MonteCarloGameNode*>(view_child(key));
+}
+
+const MonteCarloGameNode* MonteCarloGameNode::view_child(unsigned short key) const
+{
+        int l = 0, h = m_chn.size() - 1;
         while (l <= h) {
                 int m = l + static_cast<int>(static_cast<unsigned>(h - l) >> 1);
                 if (key == m_chn[m].key)
@@ -61,8 +114,65 @@ MonteCarloGameNode* MonteCarloGameNode::find_child(unsigned short key) const
         return nullptr;
 }
 
+MonteCarloGameNode& MonteCarloGameNode::get_next_child()
+{
+        return m_chn[m_i_chn ++];
+}
+
+bool MonteCarloGameNode::has_next_child() const
+{
+        return m_i_chn < m_chn.size();
+}
+
+bool MonteCarloGameNode::has_child() const
+{
+        return !m_chn.empty();
+}
+
+void MonteCarloGameNode::reset_iterator()
+{
+        m_i_chn = 0;
+}
+
+std::vector<MonteCarloGameNode>& MonteCarloGameNode::get_internal_children()
+{
+        return m_chn;
+}
+
+MonteCarloGameNode& MonteCarloGameNode::get_best_child(unsigned t)
+{
+        assert(m_chn.size() >= 1);
+
+        unsigned i_best = 0;
+        float best = 0.0f;
+        for (unsigned i = 0; i < m_chn.size(); i ++) {
+                float s = m_chn[i].qi(t);
+                if (s > best) {
+                        i_best = i;
+                        best = s;
+                }
+        }
+        return m_chn[i_best];
+}
+
+const MonteCarloGameNode& MonteCarloGameNode::get_most_simulated_child() const
+{
+        assert(m_chn.size() >= 1);
+
+        unsigned i_most = 0;
+        unsigned most = 0;
+        for (unsigned i = 0; i < m_chn.size(); i ++) {
+                unsigned s = get_n_sims();
+                if (s > most) {
+                        i_most = i;
+                        most = s;
+                }
+        }
+        return m_chn[i_most];
+}
+
 std::ostream& operator<<(std::ostream& os, const MonteCarloGameNode& node)
 {
-        os << static_cast<float>(node.m_wins)/node.m_sims;
+        os << node.win_rate();
         return os;
 }

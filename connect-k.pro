@@ -24,7 +24,8 @@ SOURCES += \
     src/heurcostbenefit.cpp \
     src/heurultimate.cpp \
     src/strategymcts.cpp \
-    src/gamenode.cpp
+    src/gamenode.cpp \
+    src/constants.cpp
 
 HEADERS += \
     src/iheuristic.h \
@@ -47,4 +48,5 @@ HEADERS += \
     src/tst_heurultimate.h \
     src/strategymcts.h \
     src/tst_strategymcts.h \
-    src/gamenode.h
+    src/gamenode.h \
+    src/constants.h
